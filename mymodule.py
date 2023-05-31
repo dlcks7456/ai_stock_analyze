@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 import re
 from datetime import datetime
-import statistics
 
 def get_snapshot_soup(gicode) :
     # URL 설정
@@ -23,11 +22,8 @@ def get_year_fh(soup) :
     # div 안의 table 태그 찾기
     table = div.find('table')
 
-    # thead 제외하기
-    table.thead.decompose()
-
     # 각 tr 찾기
-    rows = table.find_all('tr')
+    rows = table.find('tbody').find_all('tr')
 
     # 결과를 저장할 dict 생성 (재무제표)
     result = {}
@@ -91,7 +87,20 @@ def get_year_fh(soup) :
 
     for key, values in result.items():
         result[key] = dict(zip(years, values))
-    
+
+
+    theads = table.find('thead').find_all('tr')[1].find_all('th')[:4]
+    years_text = []
+
+    for th in theads :
+        chk_a = th.find('a')
+        if chk_a == None :
+            years_text.append(th.get_text(strip=True))
+        else :
+            years_text.append(chk_a.get_text(strip=True))
+
+    result['year_chk'] = dict(zip(years, years_text))
+
     return result
 
 
@@ -103,11 +112,8 @@ def get_quarter_fh(soup) :
     # div 안의 table 태그 찾기
     table = div.find('table')
 
-    # thead 제외하기
-    table.thead.decompose()
-
     # 각 tr 찾기
-    rows = table.find_all('tr')
+    rows = table.find('tbody').find_all('tr')
 
     # 결과를 저장할 dict 생성 (재무제표)
     result = {}
@@ -166,12 +172,25 @@ def get_quarter_fh(soup) :
                 new_values.append(None)
         result[key] = new_values
         
-    # 각 value를 ['3_years_ago', '2_years_ago', '1_years_ago', 'estimated']와 매칭
-    years = ['q1', 'q2', 'q3', 'q4']
+    # 각 value를 ['q1', 'q2', 'q3', 'q4']와 매칭
+    qts = ['q1', 'q2', 'q3', 'q4']
 
     for key, values in result.items():
-        result[key] = dict(zip(years, values))
+        result[key] = dict(zip(qts, values))
     
+
+    theads = table.find('thead').find_all('tr')[1].find_all('th')[4:]
+    qts_text = []
+
+    for th in theads :
+        chk_a = th.find('a')
+        if chk_a == None :
+            qts_text.append(th.get_text(strip=True))
+        else :
+            qts_text.append(chk_a.get_text(strip=True))
+
+    result['qts_chk'] = dict(zip(qts, qts_text))
+
     return result
 
 # Summary 추출
@@ -254,6 +273,44 @@ def get_stock_info(soup) :
     }
 
 
+# 재무비율 추출
+def get_stock_rate(gicode) :
+    # URL 설정
+    gicode = '005930'
+    url = f'http://comp.fnguide.com/SVO2/ASP/SVD_FinanceRatio.asp?pGB=1&gicode=A{str(gicode)}&cID=&MenuYn=Y&ReportGB=&NewMenuID=104&stkGb=701'
+
+    # URL에서 HTML 가져오기
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # class 'um_table' div index 0
+    div = soup.find_all('div', {'class': 'um_table'})[0]
+
+    # thead
+    thead = div.find('thead')
+    ths = thead.find_all('th')[2:] # 최근 3년 & 현재 기준
+    th = [t.get_text(strip=True) for t in ths]
+
+    # tbody
+    tbody = div.find('tbody')
+    trs = tbody.find_all('tr')
+
+    # return rate
+    rate = {}
+
+    for t in trs :
+        tr_th = t.find('th')
+        th_a = tr_th.find('a')
+        if not th_a == None :
+            a_tx = th_a.get_text(strip=True).replace('&nbsp', '').replace('\xa0', ' ')
+            if a_tx in ['유동비율', '당좌비율', '부채비율', '유보율'] :
+                tds =[t.get_text(strip=True) for t in t.find_all('td')[1:]]
+                rate[a_tx] = list(zip(th, tds))
+
+    return rate
+
+
+
 # 현재가 추출 (NAVER 금융)
 def get_current_info(gicode) :
     url = f'https://finance.naver.com/item/main.naver?code={str(gicode)}'
@@ -294,7 +351,6 @@ def get_spread() :
 
   return bbb
 
-
 # 모든 아이템 출력
 def get_stock_items(gicode) :
   soup = get_snapshot_soup(gicode)
@@ -315,9 +371,14 @@ def get_stock_items(gicode) :
     'treasury' : get_treasury_stock(soup),
     'year' : get_year_fh(soup),
     'quarter' : get_quarter_fh(soup),
+    'rate': get_stock_rate(gicode),
     'bbb' : get_spread()
   }
 
+
+
+
+##############################
 
 # SRIM Calculator
 def SRIM(gicode) :
