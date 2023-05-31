@@ -1,0 +1,7 @@
+- Stock code : 151860
+- Project URL : https://app.noteable.io/p/8a943c30-2416-4c3d-bb1d-6158c8f68140/AI_Stock_Analyze
+- Create a file named [Today's date_Stock code.ipynb]
+- Run this code : [from mymodule import *]
+- Run the get_stock_items function with the stock code entered as text as a parameter
+- Run the SRIM function with the stock code entered as text as a parameter
+- Write a blog post with the output, Refer to the markdown in report_template.ipynb to create the content inside [ ].
