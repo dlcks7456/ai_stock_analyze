@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link rel="stylesheet" href="analyze.css"> -->
+    <link rel="stylesheet/less" type="text/css" href="analyze.less" />
+    <script src="https://cdn.jsdelivr.net/npm/less"></script>
+    <title>Document</title>
+</head>
+<body>
+    <!-- 본문 -->
+    <div style="margin: 50px 30px 30px 50px">
+        
+        <!-- START -->
+        <!-- Head -->
+        <h1>재무제표 간단 분석:[종목명]_[날짜] 기준</h1>
+        <div class="a-line"></div>
+        <!-- Head END -->
+
+        <!-- 종목 기본 정보 -->
+        <div class="report-title">기본 정보</div>
+        <div class="standard-info">
+            <div class="info">
+                <div class="info-cell">
+                    <div class="cell-head">종목 이름</div>
+                    <div class="cell-desc">CJ제일제당</div>
+                </div>
+
+                <div class="info-cell">
+                    <div class="cell-head">종목 코드</div>
+                    <div class="cell-desc">097950</div>
+                </div>
+
+                <div class="info-cell">
+                    <div class="cell-head">현재 주가</div>
+                    <div class="cell-desc">318,500원</div>
+                </div>
+
+                <div class="info-cell">
+                    <div class="cell-head">기준 날짜</div>
+                    <div class="cell-desc">2023/06/02 11:33</div>
+                </div>
+            </div>
+
+            <div class="info-one">
+                <div class="cell-head">시가 총액</div>
+                <div class="cell-desc">4,749,600,000,000</div>
+            </div>
+
+            <div class="info-one">
+                <div class="cell-head">발행주식수</div>
+                <div class="cell-desc">15,054,186</div>
+            </div>
+
+            <div class="info-one">
+                <div class="cell-head">자사주</div>
+                <div class="cell-desc">357,303</div>
+            </div>
+
+            <div class="info-summary">
+                <div class="cell-head">개요</div>
+                <div class="cell-desc">2007년 9월 CJ에서 기업 분할되어 식품과 생명공학에 집중하는 사업회사로 출발한 국내 1위 식품회사의 위치를 공고히하고 있음. 고급화 되어가는 소비자 트렌드에 맞춰 프리미엄화 전략을 적극 추진하여 뛰어난 맛과 품질, 강력한 브랜드 파워를 갖추기 위해 노력 중임. 육상 및 해상 등 여러 분야에서 전국 네트워크 구축을 통해 운송의 합리화를 추진하여 물류 품질의 질적 향상과 서비스 극대화에 중점을 두고 있음.</div>
+            </div>
+        </div>
+        <!-- 종목 기본 정보 END-->
+
+        <!-- 재무제표 -->
+        <div class="report-title">재무제표</div>
+        
+        <div class="financial-statements">
+            <div class="fs-table">
+                <!-- 연간 -->
+                <div class="fs-head">
+                    <div class="fs-title">연간</div>
+                    <div class="fs-unit">단위: 억원, %</div>
+                </div>
+                <div class="fs-div">
+                    <table class="fs-data">
+                        <thead>
+                            <th>IFRS(연결)</th>
+                            <th>2020/12</th>
+                            <th>2021/12</th>
+                            <th>2022/12</th>
+                            <th>2023/12(E)</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>매출액</th>
+                                <td>242,457</td>
+                                <td>262,892</td>
+                                <td>300,795</td>
+                                <td>307,855</td>
+                            </tr>
+                            <tr>
+                                <th>영업이익</th>
+                                <td>13596</td>
+                                <td>15244</td>
+                                <td>16647</td>
+                                <td>14160</td>
+                            </tr>
+                            <tr>
+                                <th>당기순이익</th>
+                                <td>7864</td>
+                                <td>8924</td>
+                                <td>8027</td>
+                                <td>6353</td>
+                            </tr>
+                            <tr>
+                                <th>지배주주지분</th>
+                                <td>52744</td>
+                                <td>61135</td>
+                                <td>67557</td>
+                                <td>71805</td>
+                            </tr>
+                            <tr>
+                                <th>ROE</th>
+                                <td>13.5</td>
+                                <td>10.76</td>
+                                <td>9.26</td>
+                                <td>6.55</td>
+                            </tr>
+                            <tr>
+                                <th>PER</th>
+                                <td>9.1</td>
+                                <td>10.36</td>
+                                <td>10.46</td>
+                                <td>11.32</td>
+                            </tr>
+                            <tr>
+                                <th>PBR</th>
+                                <td>1.16</td>
+                                <td>1.02</td>
+                                <td>0.91</td>
+                                <td>0.71</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- 연간 END -->
+                <!-- 분기 -->
+                <div class="fs-head" style="margin-top: 20px">
+                    <div class="fs-title">분기</div>
+                    <div class="fs-unit">단위: 억원, %</div>
+                </div>
+                <div class="fs-div">
+                    <table class="fs-data">
+                        <thead>
+                            <th>IFRS(연결)</th>
+                            <th>2023/03</th>
+                            <th>2023/06(E)</th>
+                            <th>2023/09(E)</th>
+                            <th>2023/12(E)</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>매출액</th>
+                                <td>242,457</td>
+                                <td>262,892</td>
+                                <td>300,795</td>
+                                <td>307,855</td>
+                            </tr>
+                            <tr>
+                                <th>영업이익</th>
+                                <td>13596</td>
+                                <td>15244</td>
+                                <td>16647</td>
+                                <td>14160</td>
+                            </tr>
+                            <tr>
+                                <th>당기순이익</th>
+                                <td>7864</td>
+                                <td>8924</td>
+                                <td>8027</td>
+                                <td>6353</td>
+                            </tr>
+                            <tr>
+                                <th>ROE</th>
+                                <td>13.5</td>
+                                <td>10.76</td>
+                                <td>9.26</td>
+                                <td>6.55</td>
+                            </tr>
+                            <tr>
+                                <th>PER</th>
+                                <td>9.1</td>
+                                <td>10.36</td>
+                                <td>10.46</td>
+                                <td>11.32</td>
+                            </tr>
+                            <tr>
+                                <th>PBR</th>
+                                <td>1.16</td>
+                                <td>1.02</td>
+                                <td>0.91</td>
+                                <td>0.71</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- 분기 END -->
+
+                <!-- 재무비율 -->
+                <div class="fs-head" style="margin-top: 20px">
+                    <div class="fs-title">재무비율</div>
+                    <div class="fs-unit">단위: %, 억원</div>
+                </div>
+                <div class="fs-div">
+                    <table class="fs-data">
+                        <thead>
+                            <th>IFRS(연결)</th>
+                            <th>2020/12</th>
+                            <th>2021/12</th>
+                            <th>2022/12</th>
+                            <th>2023/03</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>유동비율</th>
+                                <td>262.2</td>
+                                <td>247.6</td>
+                                <td>278.9</td>
+                                <td>282.0</td>
+                            </tr>
+                            <tr>
+                                <th>당좌비율</th>
+                                <td>219.8</td>
+                                <td>200.6</td>
+                                <td>212.2</td>
+                                <td>210.4</td>
+                            </tr>
+                            <tr>
+                                <th>부채비율</th>
+                                <td>37.1</td>
+                                <td>39.9</td>
+                                <td>26.4</td>
+                                <td>26.2</td>
+                            </tr>
+                            <tr>
+                                <th>유보율</th>
+                                <td>29,723.5</td>
+                                <td>32,906.5</td>
+                                <td>38,360.3</td>
+                                <td>38,898.8</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- 재무비율 END -->
+
+                <!-- 현금흐름표 -->
+                <div class="fs-head" style="margin-top: 20px">
+                    <div class="fs-title">현금흐름표</div>
+                    <div class="fs-unit">단위: 억원</div>
+                </div>
+                <div class="fs-div">
+                    <table class="fs-data">
+                        <thead>
+                            <th>IFRS(연결)</th>
+                            <th>2020/12</th>
+                            <th>2021/12</th>
+                            <th>2022/12</th>
+                            <th>2023/03</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>영업활동</th>
+                                <td>20,018</td>
+                                <td>16,864</td>
+                                <td>16,273</td>
+                                <td>104</td>
+                            </tr>
+                            <tr>
+                                <th>투자활동</th>
+                                <td>-3,451</td>
+                                <td>-6,254</td>
+                                <td>-14,985</td>
+                                <td>-2,818</td>
+                            </tr>
+                            <tr>
+                                <th>재무활동</th>
+                                <td>-10,979</td>
+                                <td>-12,739</td>
+                                <td>5,516</td>
+                                <td>3,944</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- 현금흐름표 END -->
+
+            </div>
+        </div>
+        <!-- END -->
+
+    </div>
+</body>
+</html>

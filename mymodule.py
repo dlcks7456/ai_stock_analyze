@@ -276,7 +276,6 @@ def get_stock_info(soup) :
 # 재무비율 추출
 def get_stock_rate(gicode) :
     # URL 설정
-    gicode = '005930'
     url = f'http://comp.fnguide.com/SVO2/ASP/SVD_FinanceRatio.asp?pGB=1&gicode=A{str(gicode)}&cID=&MenuYn=Y&ReportGB=&NewMenuID=104&stkGb=701'
 
     # URL에서 HTML 가져오기
@@ -289,7 +288,7 @@ def get_stock_rate(gicode) :
     # thead
     thead = div.find('thead')
     ths = thead.find_all('th')[2:] # 최근 3년 & 현재 기준
-    th = [t.get_text(strip=True) for t in ths]
+    dates = [t.get_text(strip=True) for t in ths]
 
     # tbody
     tbody = div.find('tbody')
@@ -305,10 +304,41 @@ def get_stock_rate(gicode) :
             a_tx = th_a.get_text(strip=True).replace('&nbsp', '').replace('\xa0', ' ')
             if a_tx in ['유동비율', '당좌비율', '부채비율', '유보율'] :
                 tds =[t.get_text(strip=True) for t in t.find_all('td')[1:]]
-                rate[a_tx] = list(zip(th, tds))
+                rate[a_tx] = list(zip(dates, tds))
 
     return rate
 
+# 현금흐름표 추출
+def get_cash_table(gicode) :
+    # URL 설정
+    url = f'http://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?pGB=1&gicode=A{str(gicode)}&cID=&MenuYn=Y&ReportGB=&NewMenuID=103&stkGb=701'
+
+    # URL에서 HTML 가져오기
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # id가 divCashY인 div
+    div = soup.find('div', {'id': 'divCashY'})
+
+    # 현금흐름표 테이블
+    table = div.find('table')
+
+    # thead
+    thead = div.find('thead')
+    ths = thead.find_all('th')[1:] # 최근 3년 & 현재 기준
+    dates = [t.get_text(strip=True) for t in ths]
+
+    # tbody
+    tbody = div.find('tbody')
+    trs = tbody.find_all('tr', {'class', 'rowBold'})[:-1]
+
+    cash_table = {}
+    for tr in trs :
+        th = tr.find('th').get_text(strip=True)
+        tds = [i.get_text(strip=True) for i in tr.find_all('td')]
+        cash_table[th] = list(zip(dates, tds))
+
+    return cash_table
 
 
 # 현재가 추출 (NAVER 금융)
@@ -328,8 +358,6 @@ def get_current_info(gicode) :
         'current_price': no_today,
         'base_date': formatted_date
     }
-
-
 
 
 # 등급별금리스프레드 추출
@@ -372,6 +400,7 @@ def get_stock_items(gicode) :
     'year' : get_year_fh(soup),
     'quarter' : get_quarter_fh(soup),
     'rate': get_stock_rate(gicode),
+    'cash_table': get_cash_table(gicode),
     'bbb' : get_spread()
   }
 
