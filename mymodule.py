@@ -244,7 +244,7 @@ def get_treasury_stock(soup) :
     trs = div.find_all('tr')
     
     # find treasury tr
-    flag_text = ['자사주', '우리사주']
+    flag_text = ['자사주']
     
     treasury_td = 0
     
