@@ -91,6 +91,11 @@
 
         .cell-desc {
             border-top: 0;
+
+            .info-industry {
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
         }
     }
 }
@@ -185,12 +190,20 @@
     // For Firefox
     &[type=number] {
       -moz-appearance: textfield;
+      border: 1px solid fade(@basic-color, 40%);
     }
 
     &:focus {
         outline: 1px solid @basic-color;
     }
 }
+
+.fs-chard-div {
+    .max-width-set();
+    margin-top: 20px;
+    margin-bottom: 60px;
+}
+
 @media @mobile {
     .standard-info {
         .info-one {
@@ -210,3 +223,4 @@
         font-size: 0.7rem !important;
     }
 }
+

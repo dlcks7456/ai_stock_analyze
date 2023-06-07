@@ -7,6 +7,10 @@
     <!-- <link rel="stylesheet" href="analyze.css"> -->
     <link rel="stylesheet/less" type="text/css" href="analyze.less" />
     <script src="https://cdn.jsdelivr.net/npm/less"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@latest/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartist-plugin-legend/0.6.2/chartist-plugin-legend.min.js" integrity="sha512-J82gmCXFu+eMIvhK2cCa5dIiKYfjFY4AySzCCjG4EcnglcPQTST/nEtaf5X6egYs9vbbXpttR7W+wY3Uiy37UQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="text/javascript" src="analyze.js"></script>
     <title>Document</title>
 </head>
 <body>
@@ -61,7 +65,10 @@
 
             <div class="info-summary">
                 <div class="cell-head">개요</div>
-                <div class="cell-desc">2007년 9월 CJ에서 기업 분할되어 식품과 생명공학에 집중하는 사업회사로 출발한 국내 1위 식품회사의 위치를 공고히하고 있음. 고급화 되어가는 소비자 트렌드에 맞춰 프리미엄화 전략을 적극 추진하여 뛰어난 맛과 품질, 강력한 브랜드 파워를 갖추기 위해 노력 중임. 육상 및 해상 등 여러 분야에서 전국 네트워크 구축을 통해 운송의 합리화를 추진하여 물류 품질의 질적 향상과 서비스 극대화에 중점을 두고 있음.</div>
+                <div class="cell-desc">
+                    <div class="info-industry">KSE  코스피 운수장비 | FICS  자동차 | K200</div>
+                    <div class="info-detail">2007년 9월 CJ에서 기업 분할되어 식품과 생명공학에 집중하는 사업회사로 출발한 국내 1위 식품회사의 위치를 공고히하고 있음. 고급화 되어가는 소비자 트렌드에 맞춰 프리미엄화 전략을 적극 추진하여 뛰어난 맛과 품질, 강력한 브랜드 파워를 갖추기 위해 노력 중임. 육상 및 해상 등 여러 분야에서 전국 네트워크 구축을 통해 운송의 합리화를 추진하여 물류 품질의 질적 향상과 서비스 극대화에 중점을 두고 있음.</div>
+                </div>
             </div>
         </div>
         <!-- 종목 기본 정보 END-->
@@ -139,6 +146,14 @@
                     </table>
                 </div>
                 <!-- 연간 END -->
+                <!-- 연간 Chart -->
+                <div class="fs-chard-div">
+                    <canvas class="fs-y-chart"></canvas>
+                    <script>
+                    financeSetChart('.fs-y-chart', ['2020/12', '2021/12', '2022/12', '2023/12(E)'], [[242457, 262892, 300795, 307855], [5.6, 5.8, 5.5, 4.6], [3.24, 3.4, 2.7, 2.1]]);
+                    </script>
+                </div>
+                <!-- 연간 Chart END -->
                 <!-- 분기 -->
                 <div class="fs-head" style="margin-top: 20px">
                     <div class="fs-title">분기</div>
@@ -200,7 +215,14 @@
                     </table>
                 </div>
                 <!-- 분기 END -->
-
+                <!-- 분기 Chart -->
+                <div class="fs-chard-div">
+                    <canvas class="fs-q-chart"></canvas>
+                    <script>
+                    financeSetChart('.fs-q-chart', ['2023/03(E)', '2023/06(E)', '2022/09(E)', '2023/12(E)'], [[242457, 262892, 300795, 307855], [5.6, 5.8, 5.5, 4.6], [3.24, 3.4, 2.7, 2.1]]);
+                    </script>
+                </div>
+                <!-- 연간 Chart END -->
                 <!-- 재무비율 -->
                 <div class="fs-head" style="margin-top: 20px">
                     <div class="fs-title">재무비율</div>
@@ -318,7 +340,7 @@
                     <table class="fs-data">
                         <thead>
                             <th>구분</th>
-                            <th>PER</th>
+                            <th>PER (%)</th>
                             <th>기업가치</th>
                             <th>적정주가</th>
                         </thead>
@@ -338,7 +360,7 @@
                             <tr>
                                 <th>별도 조정</th>
                                 <td>
-                                    <input class="custom-input per-input" type="number" min="0" max="100" step="1"/>
+                                    <input class="custom-input per-input" value="10" type="number" min="0" max="100" step="1"/>
                                 </td>
                                 <td><span class="custom-value per-fair-value"></span></td>
                                 <td><span class="custom-value per-fair-price"></span></td>
@@ -346,20 +368,85 @@
                         </tbody>
                     </table>
                 </div>
-                <!-- PER SCRIPT -->
-                <script>
+                <!-- 영업이익*PER END -->
+                <!-- 영업이익*PER Chart -->
+                <div class="fs-chard-div">
+                    <canvas class="fs-per-chart"></canvas>
+                    <script>
+const ctx = document.querySelector('.fs-per-chart').getContext('2d');
+const nowValue= 318500;
+let calcPer = 0;
+const perChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['올해 예상', '업종 평균', '별도 조정'],
+        datasets: [{
+            label: '적정주가',
+            data: [1064762, 1064762, calcPer],
+            backgroundColor: 'rgba(16, 163, 127, 0.2)',
+            borderColor: 'rgba(16, 163, 127, 1)',
+            borderWidth: 1,
+            type: 'bar'
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true,
+                position: 'left',
+                ticks: {
+                        callback: function(value, index, ticks) {
+                            return `${value.toLocaleString()}원`;
+                        }
+                    }
+            }
+        },
+        plugins: {
+            legend: {
+                onClick: (e) => e.stopPropagation()
+            },
+            annotation: {
+                annotations: {
+                    currentValue : {
+                        type: 'line',
+                        mode: 'horizontal',
+                        scaleID: 'y',
+                        value: nowValue,
+                        borderColor: 'rgba(255, 40, 40, 0.5)',
+                        borderWidth: 1.5,
+                        label: {
+                            content: '현재 주가',
+                            enabled: true,
+                            position: 'top',
+                        }
+                    },
+                    label1: {
+                        type: 'label',
+                        yValue: nowValue,
+                        content: ['현재 주가', `${nowValue.toLocaleString()}원`],
+                        color: 'rgba(255, 40, 40, 1)',
+                        font: {
+                            size: 13,
+                        }
+                    }
+                } 
+            }
+        }
+    }
+});
+
 const perInput = document.querySelector('.per-input');
-perInput.addEventListener('input', (event)=>{
+const perHandler = (perValue)=>{
     const fairValue = document.querySelector('.per-fair-value');
     const fairPrice = document.querySelector('.per-fair-price');
     
-    if( parseInt(event.target.value) > 100  ){
-        event.target.value = 100;
+    if( parseInt(perValue) > 100  ){
+        perValue = 100;
     }
 
     const earning = 14160; // 영업이익
     const stockCnt = 1504186; // 발행주식수
-    const per = parseFloat(event.target.value);
+    const per = parseFloat(perValue);
 
     // 기업가치
     let calcEarning = earning*per;
@@ -367,19 +454,29 @@ perInput.addEventListener('input', (event)=>{
 
     calcEarning = calcEarning.toFixed(1);
     calcPrice = calcPrice.toFixed(0);
-
+    
     if( isNaN(calcEarning) ){
         fairValue.innerHTML = '';
         fairPrice.innerHTML = '';
+        calcPrice = 0;
     }else{
         fairValue.innerHTML = `${parseFloat(calcEarning).toLocaleString()}억원`;
-        
         fairPrice.innerHTML = `${parseInt(calcPrice).toLocaleString()}원`;
     }
+
+    calcPer = calcPrice;
+    perChart.data.datasets[0].data[2] = calcPer;
+
+    perChart.update();
+};
+
+perInput.addEventListener('input', (event)=>{
+    perHandler(event.target.value);
 });
+perHandler(10);
                 </script>
-                <!-- PER SCRIPT END -->
-                <!-- 영업이익*PER END -->
+                </div>
+                <!-- 영업이익*PER Chart END -->
 
             </div>
         </div>
