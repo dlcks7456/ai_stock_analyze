@@ -205,7 +205,6 @@ def get_summary(soup) :
     
     return summary
 
-
 # 발행주식수 추출
 def get_common_stock(soup) :
     # ID가 'svdMainGrid1'인 div 찾기
@@ -308,7 +307,7 @@ def get_stock_rate(gicode) :
 
     return rate
 
-# 현금흐름표 추출
+# 재무상태표/현금흐름표 추출
 def get_cash_table(gicode) :
     # URL 설정
     url = f'http://comp.fnguide.com/SVO2/ASP/SVD_Finance.asp?pGB=1&gicode=A{str(gicode)}&cID=&MenuYn=Y&ReportGB=&NewMenuID=103&stkGb=701'
@@ -317,11 +316,9 @@ def get_cash_table(gicode) :
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
 
+    # 현금흐름표
     # id가 divCashY인 div
     div = soup.find('div', {'id': 'divCashY'})
-
-    # 현금흐름표 테이블
-    table = div.find('table')
 
     # thead
     thead = div.find('thead')
@@ -335,13 +332,33 @@ def get_cash_table(gicode) :
     cash_table = {}
     for tr in trs :
         th = tr.find('th').get_text(strip=True)
-        tds = [i.get_text(strip=True) for i in tr.find_all('td')]
+        tds = [int(i.get_text(strip=True).replace(',' ,'')) for i in tr.find_all('td')]
         cash_table[th] = list(zip(dates, tds))
 
-    return cash_table
+    # 재무상태표
+    # id가 divDaechaY인 div 
+    daecha_div = soup.find('div', {'id': 'divDaechaY'})
+
+    daecha_thead = daecha_div.find('thead')
+    daecha_ths = daecha_thead.find_all('th')[1:] # 최근 3년 & 현재 기준
+    daecha_dates = [t.get_text(strip=True) for t in daecha_ths]
+
+    row_bold = daecha_div.find_all('tr', {'class': 'rowBold'})
+    
+    daecha_table = {}
+    for tr in row_bold :
+        th = tr.find('th').get_text(strip=True)
+        tds = [int(i.get_text(strip=True).replace(',' ,'')) for i in tr.find_all('td')]
+        daecha_table[th] = list(zip(daecha_dates, tds))
 
 
-# 현재가 추출 (NAVER 금융)
+    return {
+        'cash_table': cash_table,
+        'daecha_table': daecha_table
+    }
+
+
+# 현재가 추출 (NAVER 금융) + 업종 PER
 def get_current_info(gicode) :
     url = f'https://finance.naver.com/item/main.naver?code={str(gicode)}'
     response = requests.get(url)
@@ -389,6 +406,10 @@ def get_stock_items(gicode) :
   # 발행 주식수, 시가총액
   common = get_common_stock(soup)
 
+
+  # 재무상태표, 현금흐름표
+  dc = get_cash_table(gicode)
+
   return {
     'name': info['name'],
     'stxt': info['stxt'],
@@ -400,7 +421,8 @@ def get_stock_items(gicode) :
     'year' : get_year_fh(soup),
     'quarter' : get_quarter_fh(soup),
     'rate': get_stock_rate(gicode),
-    'cash_table': get_cash_table(gicode),
+    'cash_table': dc['cash_table'],
+    'daecha_table': dc['daecha_table'],
     'bbb' : get_spread()
   }
 
