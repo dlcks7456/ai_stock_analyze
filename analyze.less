@@ -1,5 +1,7 @@
 @basic-color: #10a37f;
 @gray-color: #bbbbbb;
+@good-color: #10a37f;
+@bad-color: #ff2828;
 @box-shadow-color: rgba(0, 0, 0, 0.1);
 @break-point: 600px;
 @mobile: ~"(max-width: 724px)";
@@ -23,19 +25,23 @@
 .a-line {
     border-top: 1px solid @gray-color;
     width: 100%;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin-top: 30px;
+    margin-bottom: 25px;
+    .max-width-set();
+}
+
+.my-fs-report {
+    color: #353535;
 }
 
 .report-title {
-    margin-top: 30px;
     margin-bottom: 10px;
     font-size: 1.1rem;
     font-weight: bold;
-
+    
     &:before {
         content: '✔';
-        margin-right: 10px;
+        margin-right: 5px;
     }
 }
 
@@ -159,7 +165,13 @@
                 text-align: center;
                 transition: background-color 0.3s;
                 &:hover {
-                    background-color: fade(@basic-color, 30%);
+                    background-color: fade(@basic-color, 15%);
+                }
+            }
+
+            td.good-value, td.bad-value{
+                &:hover {
+                    font-weight: bold;
                 }
             }
 
@@ -204,6 +216,59 @@
     margin-bottom: 60px;
 }
 
+.srim-selected-style(){
+    background-color: fade(@basic-color, 20%);
+    border: 1px solid @basic-color;
+}
+
+.srim-page {
+    margin-top: 20px;
+
+    .srim-roe-head {
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+
+        .srim-roe {
+            font-weight: bold;
+            padding: 8px;
+            border: 1px solid @gray-color;
+            border-radius: 10px;
+            transition: background-color 0.3s;
+            cursor: pointer;
+
+            &:hover {
+                .srim-selected-style();
+            }
+        }
+
+        .roe-selected {
+            .srim-selected-style();
+        }
+
+        .srim-roe-info {
+            font-size: 0.7rem;
+            color: rgb(240, 77, 77);
+            padding-bottom: 5px;
+        }
+    }
+}
+
+.post-fs-hidden {
+    opacity: 0;
+}
+
+.srim-result {
+    position: relative;
+    min-height: 195px;
+    .srim-table {
+        position: absolute;
+        top:0;
+        left:0;
+        transition: opacity 0.5s;
+    }
+}
+
 @media @mobile {
     .standard-info {
         .info-one {
@@ -222,5 +287,17 @@
     .fs-data {
         font-size: 0.7rem !important;
     }
+
+    .srim-result {
+        min-height: 181px;
+    }
 }
 
+
+.good-value {
+    color: @good-color;
+}
+
+.bad-value {
+    color: @bad-color;
+}

@@ -15,7 +15,7 @@
 </head>
 <body>
     <!-- 본문 -->
-    <div style="margin: 50px 30px 30px 50px">
+    <div class="my-fs-report" style="margin: 50px 30px 30px 50px">
         
         <!-- START -->
         <!-- Head -->
@@ -72,7 +72,7 @@
             </div>
         </div>
         <!-- 종목 기본 정보 END-->
-
+        <div class="a-line"></div>
         <!-- 재무제표 -->
         <div class="report-title">재무제표</div>
         
@@ -123,14 +123,14 @@
                             </tr>
                             <tr>
                                 <th>ROE</th>
-                                <td>13.5</td>
-                                <td>10.76</td>
+                                <td class="good-value">13.5</td>
+                                <td class="good-value">10.76</td>
                                 <td>9.26</td>
                                 <td>6.55</td>
                             </tr>
                             <tr>
                                 <th>PER</th>
-                                <td>9.1</td>
+                                <td class="good-value">9.1</td>
                                 <td>10.36</td>
                                 <td>10.46</td>
                                 <td>11.32</td>
@@ -295,15 +295,15 @@
                             </tr>
                             <tr>
                                 <th>투자활동</th>
-                                <td>-3,451</td>
-                                <td>-6,254</td>
-                                <td>-14,985</td>
-                                <td>-2,818</td>
+                                <td class="bad-value">-3,451</td>
+                                <td class="bad-value">-6,254</td>
+                                <td class="bad-value">-14,985</td>
+                                <td class="bad-value">-2,818</td>
                             </tr>
                             <tr>
                                 <th>재무활동</th>
-                                <td>-10,979</td>
-                                <td>-12,739</td>
+                                <td class="bad-value">-10,979</td>
+                                <td class="bad-value">-12,739</td>
                                 <td>5,516</td>
                                 <td>3,944</td>
                             </tr>
@@ -312,6 +312,7 @@
                 </div>
                 <!-- 현금흐름표 END -->
 
+                <div class="a-line"></div>
 
                 <!-- 적정주가 계산 파트 -->
                 <div class="report-title">적정주가 계산</div>
@@ -373,10 +374,10 @@
                 <div class="fs-chard-div">
                     <canvas class="fs-per-chart"></canvas>
                     <script>
-const ctx = document.querySelector('.fs-per-chart').getContext('2d');
+const perCanvas = document.querySelector('.fs-per-chart').getContext('2d');
 const nowValue= 318500;
 let calcPer = 0;
-const perChart = new Chart(ctx, {
+const perChart = new Chart(perCanvas, {
     type: 'line',
     data: {
         labels: ['올해 예상', '업종 평균', '별도 조정'],
@@ -412,7 +413,7 @@ const perChart = new Chart(ctx, {
                         mode: 'horizontal',
                         scaleID: 'y',
                         value: nowValue,
-                        borderColor: 'rgba(255, 40, 40, 0.5)',
+                        borderColor: 'rgba(255, 127, 80, 1)',
                         borderWidth: 1.5,
                         label: {
                             content: '현재 주가',
@@ -424,7 +425,7 @@ const perChart = new Chart(ctx, {
                         type: 'label',
                         yValue: nowValue,
                         content: ['현재 주가', `${nowValue.toLocaleString()}원`],
-                        color: 'rgba(255, 40, 40, 1)',
+                        color: 'rgba(255, 127, 80, 1)',
                         font: {
                             size: 13,
                         }
@@ -477,8 +478,231 @@ perHandler(10);
                 </script>
                 </div>
                 <!-- 영업이익*PER Chart END -->
+                <!-- SRIM 계산 -->
+                <div class="fs-head" style="margin-top: 20px">
+                    <div class="fs-title">SRIM</div>
+                </div>
+                <div class="standard-info">
+                    <div class="info-one">
+                        <div class="cell-head">발행주식수</div>
+                        <div class="cell-desc">402,044,203</div>
+                    </div>
+                    <div class="info-one">
+                        <div class="cell-head">자사주</div>
+                        <div class="cell-desc">6,962,511</div>
+                    </div>
 
+                    <div class="info" style="margin-top: 15px;">
+                        <div class="info-cell">
+                            <div class="cell-head">지배주주지분</div>
+                            <div class="cell-desc">393,379</div>
+                        </div>
+        
+                        <div class="info-cell">
+                            <div class="cell-head">BBB-</div>
+                            <div class="cell-desc">10.85%</div>
+                        </div>
+                        <div class="info-one">
+                            <div class="cell-head">예상 ROE</div>
+                            <div class="cell-desc">19.33%</div>
+                        </div>
+                        <div class="info-one">
+                            <div class="cell-head">가중 ROE</div>
+                            <div class="cell-desc">13.02%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="srim-page">
+                    <div class="srim-roe-head">
+                        <div class="srim-roe roe-selected">예상 ROE</div>
+                        <div class="srim-roe">가중 ROE</div>
+                        <div class="srim-roe-info">기준 ROE 선택</div>
+                    </div>
+                    <div class="fs-div srim-result" style="margin-top: 10px">
+                        <table class="fs-data srim-table">
+                            <thead>
+                                <th>초과이익</th>
+                                <th>기업가치</th>
+                                <th>적정주가</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th>이익 지속</th>
+                                    <td>1700,830.97억</td>
+                                    <td>177,389원</td>
+                                </tr>
+                                <tr>
+                                    <th>10% 감소</th>
+                                    <td>537,372.69억</td>
+                                    <td>136,016원</td>
+                                </tr>
+                                <tr>
+                                    <th>20% 감소</th>
+                                    <td>479,884.13억</td>
+                                    <td>121,465원</td>
+                                </tr>
+                                <tr>
+                                    <th>30% 감소</th>
+                                    <td>379,884.13억</td>
+                                    <td>111,465원</td>
+                                </tr>
+                                <tr>
+                                    <th>40% 감소</th>
+                                    <td>279,884.13억</td>
+                                    <td>91,465원</td>
+                                </tr>
+                                <tr>
+                                    <th>50% 감소</th>
+                                    <td>179,884.13억</td>
+                                    <td>71,465원</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="fs-data srim-table post-fs-hidden">
+                            <thead>
+                                <th>초과이익</th>
+                                <th>기업가치</th>
+                                <th>적정주가</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th>이익 지속</th>
+                                    <td>1800,830.97억</td>
+                                    <td>187,389원</td>
+                                </tr>
+                                <tr>
+                                    <th>10% 감소</th>
+                                    <td>547,372.69억</td>
+                                    <td>146,016원</td>
+                                </tr>
+                                <tr>
+                                    <th>20% 감소</th>
+                                    <td>479,884.13억</td>
+                                    <td>131,465원</td>
+                                </tr>
+                                <tr>
+                                    <th>30% 감소</th>
+                                    <td>379,884.13억</td>
+                                    <td>111,465원</td>
+                                </tr>
+                                <tr>
+                                    <th>40% 감소</th>
+                                    <td>279,884.13억</td>
+                                    <td>91,465원</td>
+                                </tr>
+                                <tr>
+                                    <th>50% 감소</th>
+                                    <td>179,884.13억</td>
+                                    <td>71,465원</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- SRIM END -->
+                <!-- SRIM Chart -->
+                <div class="fs-chard-div">
+                    <canvas class="fs-srim-chart"></canvas>
+                </div>
+                <script>
+// SRIM CHART
+const srimCanvas = document.querySelector('.fs-srim-chart').getContext('2d');
+const srimResults = [
+    [267613, 369561, 405503, 425503, 455503, 485503],
+    [485503, 455503, 425503, 405503, 369561, 267613]
+]
+let setSRIM = srimResults[0];
+const srimChart = new Chart(srimCanvas, {
+    type: 'line',
+    data: {
+        labels: ['이익 지속', '10% 감소', '20% 감소', '30% 감소', '40% 감소', '50% 감소'],
+        datasets: [{
+            label: '적정주가',
+            data: setSRIM,
+            backgroundColor: 'rgba(16, 163, 127, 0.2)',
+            borderColor: 'rgba(16, 163, 127, 1)',
+            borderWidth: 1,
+            type: 'bar'
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true,
+                position: 'left',
+                ticks: {
+                        callback: function(value, index, ticks) {
+                            return `${value.toLocaleString()}원`;
+                        }
+                    }
+            }
+        },
+        plugins: {
+            legend: {
+                onClick: (e) => e.stopPropagation()
+            },
+            annotation: {
+                annotations: {
+                    currentValue : {
+                        type: 'line',
+                        mode: 'horizontal',
+                        scaleID: 'y',
+                        value: nowValue,
+                        borderColor: 'rgba(255, 127, 80, 1)',
+                        borderWidth: 1.5,
+                        label: {
+                            content: '현재 주가',
+                            enabled: true,
+                            position: 'top',
+                        }
+                    },
+                    label1: {
+                        type: 'label',
+                        yValue: nowValue,
+                        content: ['현재 주가', `${nowValue.toLocaleString()}원`],
+                        color: 'rgba(255, 127, 80, 1)',
+                        font: {
+                            size: 13,
+                        }
+                    }
+                } 
+            }
+        }
+    }
+});
+// ROE 선택 기능
+const roeBtn = document.querySelectorAll('.srim-roe');
+const roeSelected = 'roe-selected';
+const roeHandler = (index)=>{
+    const roeHead = document.querySelector('.srim-roe-head');
+    const selectedRoe = roeHead.querySelector(`.${roeSelected}`);
+    const roeTables = document.querySelectorAll('.srim-table');
+    selectedRoe.classList.remove(roeSelected);
+    
+    roeBtn[index].classList.add(roeSelected);
+    roeTables.forEach((table)=>{
+        table.classList.add('post-fs-hidden');
+    });
+    roeTables[index].classList.remove('post-fs-hidden');
+
+    // Chart update
+    setSRIM = srimResults[index];
+    srimChart.data.datasets[0].data = setSRIM;
+
+    srimChart.update();
+};
+
+roeBtn.forEach((roe, index)=>{
+    roe.addEventListener('click', ()=>{
+        roeHandler(index);
+    });
+});
+                </script>
             </div>
+            <!-- SRIM Chart END -->
+            <div class="a-line"></div>
+
         </div>
         <!-- END -->
 
