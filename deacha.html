@@ -1,0 +1,120 @@
+
+        <!-- 재무상태표 -->
+        <div class="fs-head" style="margin-top: 20px">
+            <div class="fs-title">재무상태표</div>
+            <div class="fs-unit">단위: 억원, %</div>
+        </div>
+        <div class="fs-div">
+            <table class="fs-data">
+                <thead>
+                    <th>IFRS(연결)</th>
+                    <th>2020/12</th>
+                    <th>2021/12</th>
+                    <th>2022/12</th>
+                    <th>2023/03</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>자산</th>
+                        <td>215,342</td>
+                        <td>258,332</td>
+                        <td>302,575</td>
+                        <td>324,074</td>
+                    </tr>
+                    <tr>
+                        <th>부채</th>
+                        <td>81,753</td>
+                        <td>106,365</td>
+                        <td>130,400</td>
+                        <td>144,082</td>
+                    </tr>
+                    <tr>
+                        <th>자본</th>
+                        <td>133,589</td>
+                        <td>151,967</td>
+                        <td>172,175</td>
+                        <td>179,992</td>
+                    </tr>
+                    <tr>
+                        <th>부채비율</th>
+                        <td><span class="good-value">61.20</span></td>
+                        <td><span class="good-value">69.99</span></td>
+                        <td><span class="good-value">75.74</span></td>
+                        <td><span class="good-value">80.05</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- 재무상태표 END -->
+        <!-- 재무상태표 Chart -->
+        <div class="fs-chard-div">
+            <canvas class="fs-bar-chart"></canvas>
+            <script>
+                const fsBarChart = document.querySelector('.fs-bar-chart').getContext('2d');
+                const deptRatio = [61.2, 69.99, 75.74, 80.05];
+                const fsBarCanvas = new Chart(fsBarChart, {
+                    type: 'bar',
+                    data: {
+                        labels: ['2020/12', '2021/12', '2022/12', '2023/03'],
+                        datasets: [{
+                                label: '자본',
+                                data: [133589, 151967, 172175, 179992],
+                                backgroundColor: 'rgba(16, 163, 127, 0.2)',
+                                borderColor: 'rgba(16, 163, 127, 1)',
+                                borderWidth: 1,
+                                stack: 'combined',
+                                yAxisID: 'y1',
+                            },
+                            {
+                                label: '부채',
+                                data: [81753, 106365, 130400, 144082],
+                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1,
+                                stack: 'combined',
+                                yAxisID: 'y1',
+                            }, {
+                                label: '부채비율',
+                                data: deptRatio,
+                                backgroundColor: 'rgba(0, 0, 128, 0.2)',
+                                borderColor: 'rgba(0, 0, 128, 1)',
+                                borderWidth: 1,
+                                type: 'line',
+                                yAxisID: 'y2',
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            y1: {
+                                beginAtZero: true,
+                                stacked: true,
+                                position: 'left',
+                                ticks: {
+                                    stepSize: 100000,
+                                    callback: function(value, index, ticks) {
+                                        return `${value.toLocaleString()}억원`;
+                                    }
+                                }
+                            },
+                            y2: {
+                                beginAtZero: true,
+                                position: 'right',
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                                ticks: {
+                                    callback: function(value, index, ticks) {
+                                        return `${value.toLocaleString()}%`;
+                                    }
+                                },
+                                min: Math.round((Math.min(...deptRatio) / 5) * 5) - 5,
+                                max: Math.round((Math.max(...deptRatio) / 5) * 5) + 5,
+                                stepSize: 5
+                            }
+                        },
+                    }
+                });
+            </script>
+        </div>
+        <!-- 재무상태표 Chart END -->

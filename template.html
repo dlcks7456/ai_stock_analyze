@@ -4,13 +4,71 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <link rel="stylesheet" href="analyze.css"> -->
+    <!-- <link rel="stylesheet/less" type="text/css" href="https://tistory3.daumcdn.net/tistory/6187703/skin/images/analyze.less" /> -->
     <link rel="stylesheet/less" type="text/css" href="analyze.less" />
     <script src="https://cdn.jsdelivr.net/npm/less"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@latest/dist/chartjs-plugin-annotation.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartist-plugin-legend/0.6.2/chartist-plugin-legend.min.js" integrity="sha512-J82gmCXFu+eMIvhK2cCa5dIiKYfjFY4AySzCCjG4EcnglcPQTST/nEtaf5X6egYs9vbbXpttR7W+wY3Uiy37UQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script type="text/javascript" src="analyze.js"></script>
+    <script>
+    // 연간/분기 차트 생성
+    const financeSetChart = (className, labels, datas) => {
+        const ctx = document.querySelector(className).getContext('2d');
+        const myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '매출액',
+                    data: datas[0],
+                    backgroundColor: 'rgba(16, 163, 127, 0.2)',
+                    borderColor: 'rgba(16, 163, 127, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y1',
+                    type: 'bar'
+                }, {
+                    label: '영업이익률',
+                    data: datas[1],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y2',
+                }, {
+                    label: '순이익률',
+                    data: datas[2],
+                    backgroundColor: 'rgba(0, 0, 128, 0.2)',
+                    borderColor: 'rgba(0, 0, 128, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y2',
+                }]
+            },
+            options: {
+                scales: {
+                    y1: {
+                        position: 'left',
+                        ticks: {
+                            callback: function(value, index, ticks) {
+                                return `${value.toLocaleString()}억원`;
+                            }
+                        }
+                    },
+                    y2: {
+                        beginAtZero: true,
+                        position: 'right',
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        ticks: {
+                            callback: function(value, index, ticks) {
+                                return `${value.toLocaleString()}%`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    </script>
     <title>Document</title>
 </head>
 <body>
@@ -23,58 +81,62 @@
         <div class="a-line"></div>
         <!-- Head END -->
 
-        <!-- 종목 기본 정보 -->
-        <div class="report-title">기본 정보</div>
-        <div class="standard-info">
-            <div class="info">
-                <div class="info-cell">
-                    <div class="cell-head">종목 이름</div>
-                    <div class="cell-desc">CJ제일제당</div>
-                </div>
 
-                <div class="info-cell">
-                    <div class="cell-head">종목 코드</div>
-                    <div class="cell-desc">097950</div>
-                </div>
-
-                <div class="info-cell">
-                    <div class="cell-head">현재 주가</div>
-                    <div class="cell-desc">318,500원</div>
-                </div>
-
-                <div class="info-cell">
-                    <div class="cell-head">기준 날짜</div>
-                    <div class="cell-desc">2023/06/02 11:33</div>
-                </div>
-            </div>
-
-            <div class="info-one">
-                <div class="cell-head">시가 총액</div>
-                <div class="cell-desc">4,749,600,000,000</div>
-            </div>
-
-            <div class="info-one">
-                <div class="cell-head">발행주식수</div>
-                <div class="cell-desc">15,054,186</div>
-            </div>
-
-            <div class="info-one">
-                <div class="cell-head">자사주</div>
-                <div class="cell-desc">357,303</div>
-            </div>
-
-            <div class="info-summary">
-                <div class="cell-head">개요</div>
-                <div class="cell-desc">
-                    <div class="info-industry">KSE  코스피 운수장비 | FICS  자동차 | K200</div>
-                    <div class="info-detail">2007년 9월 CJ에서 기업 분할되어 식품과 생명공학에 집중하는 사업회사로 출발한 국내 1위 식품회사의 위치를 공고히하고 있음. 고급화 되어가는 소비자 트렌드에 맞춰 프리미엄화 전략을 적극 추진하여 뛰어난 맛과 품질, 강력한 브랜드 파워를 갖추기 위해 노력 중임. 육상 및 해상 등 여러 분야에서 전국 네트워크 구축을 통해 운송의 합리화를 추진하여 물류 품질의 질적 향상과 서비스 극대화에 중점을 두고 있음.</div>
-                </div>
-            </div>
+<!-- 종목 기본 정보 -->
+<div class="report-title">기본 정보</div>
+<div class="standard-info">
+    <div class="info">
+        <div class="info-cell">
+            <div class="cell-head">종목 이름</div>
+            <div class="cell-desc">KG ETS</div>
         </div>
-        <!-- 종목 기본 정보 END-->
-        <div class="a-line"></div>
+
+        <div class="info-cell">
+            <div class="cell-head">종목 코드</div>
+            <div class="cell-desc">151860</div>
+        </div>
+
+        <div class="info-cell">
+            <div class="cell-head">현재 주가</div>
+            <div class="cell-desc">13,700원</div>
+        </div>
+
+        <div class="info-cell">
+            <div class="cell-head">기준 날짜</div>
+            <div class="cell-desc">2023/06/11 01:17</div>
+        </div>
+    </div>
+
+    <div class="info-one">
+        <div class="cell-head">시가 총액</div>
+        <div class="cell-desc">493,200,000,000</div>
+    </div>
+
+    <div class="info-one">
+        <div class="cell-head">발행주식수</div>
+        <div class="cell-desc">36,000,000</div>
+    </div>
+
+    <div class="info-one">
+        <div class="cell-head">자사주</div>
+        <div class="cell-desc">0</div>
+    </div>
+
+    <div class="info-summary">
+        <div class="cell-head">개요</div>
+        <div class="cell-desc">
+            <div class="info-industry">KOSDAQ  코스닥 제조 | FICS  금속 및 광물</div>
+            <div class="info-detail">2019.5.24 케이지씨에스에너지(주)를 합병, 2022.5.2 코어엔텍㈜와 물적분할. 쌍용자동차는 2022. 9월말 계열 편입. 동사는 바이오디젤 공정 부산물(피치), 동물성 유지, 음식물쓰레기 기름(음폐유), 팜 부산물 등 미활용 자원 원료로 친환경 발전용 연료를 제조하여 판매. 냉연강판, 각종표면처강판을 주요제품으로 생산 및 판매하는 KG스틸㈜(지배회사)와 동종업을 영위하는 종속회사로 구성된 철강 전문회사</div>
+        </div>
+    </div>
+</div>
+<!-- 종목 기본 정보 END-->
+<div class="a-line"></div>
+
+
+
         <!-- 재무제표 -->
-        <div class="report-title">재무제표</div>
+        <div class="report-title">재무정보</div>
         
         <div class="financial-statements">
             <div class="fs-table">
@@ -95,52 +157,52 @@
                         <tbody>
                             <tr>
                                 <th>매출액</th>
-                                <td>242,457</td>
-                                <td>262,892</td>
-                                <td>300,795</td>
-                                <td>307,855</td>
+                                <td><span>1,539</span></td>
+                                <td><span>34,125</span></td>
+                                <td><span>49,442</span></td>
+                                <td class="weight-value"><span>36,352.5</span></td>
                             </tr>
                             <tr>
                                 <th>영업이익</th>
-                                <td>13596</td>
-                                <td>15244</td>
-                                <td>16647</td>
-                                <td>14160</td>
+                                <td><span>191</span></td>
+                                <td><span>3,066</span></td>
+                                <td><span>3,562</span></td>
+                                <td class="weight-value"><span>2,834.8</span></td>
                             </tr>
                             <tr>
                                 <th>당기순이익</th>
-                                <td>7864</td>
-                                <td>8924</td>
-                                <td>8027</td>
-                                <td>6353</td>
+                                <td><span>267</span></td>
+                                <td><span>1,926</span></td>
+                                <td><span>9,049</span></td>
+                                <td class="weight-value"><span>5,211.0</span></td>
                             </tr>
                             <tr>
                                 <th>지배주주지분</th>
-                                <td>52744</td>
-                                <td>61135</td>
-                                <td>67557</td>
-                                <td>71805</td>
+                                <td>2,681</td>
+                                <td>3,190</td>
+                                <td>8,198</td>
+                                <td class="weight-value">5,609.2</td>
                             </tr>
                             <tr>
                                 <th>ROE</th>
-                                <td class="good-value">13.5</td>
-                                <td class="good-value">10.76</td>
-                                <td>9.26</td>
-                                <td>6.55</td>
+                                <td><span>10.45</span></td>
+                                <td><span class="good-value">16.32</span></td>
+                                <td><span class="good-value">85.81</span></td>
+                                <td class="weight-value"><span class="good-value">50.09</span></td>
                             </tr>
                             <tr>
                                 <th>PER</th>
-                                <td class="good-value">9.1</td>
-                                <td>10.36</td>
-                                <td>10.46</td>
-                                <td>11.32</td>
+                                <td><span class="good-value">9.08</span></td>
+                                <td><span>11.01</span></td>
+                                <td><span class="good-value">0.71</span></td>
+                                <td class="weight-value"><span class="good-value">5.54</span></td>
                             </tr>
                             <tr>
                                 <th>PBR</th>
-                                <td>1.16</td>
-                                <td>1.02</td>
-                                <td>0.91</td>
-                                <td>0.71</td>
+                                <td><span class="good-value">0.88</span></td>
+                                <td><span class="bad-value">1.65</span></td>
+                                <td><span class="good-value">0.42</span></td>
+                                <td class="weight-value"><span class="good-value">0.91</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -150,169 +212,242 @@
                 <div class="fs-chard-div">
                     <canvas class="fs-y-chart"></canvas>
                     <script>
-                    financeSetChart('.fs-y-chart', ['2020/12', '2021/12', '2022/12', '2023/12(E)'], [[242457, 262892, 300795, 307855], [5.6, 5.8, 5.5, 4.6], [3.24, 3.4, 2.7, 2.1]]);
+                        financeSetChart('.fs-y-chart', ['2020/12', '2021/12', '2022/12', '2023/12(E)'], [
+                            [1539, 34125, 49442, 36352.5],
+                            [12.41, 8.98, 7.2, 7.8],
+                            [17.35, 5.64, 18.3, 14.33],
+                        ]);
                     </script>
                 </div>
                 <!-- 연간 Chart END -->
-                <!-- 분기 -->
-                <div class="fs-head" style="margin-top: 20px">
-                    <div class="fs-title">분기</div>
-                    <div class="fs-unit">단위: 억원, %</div>
-                </div>
-                <div class="fs-div">
-                    <table class="fs-data">
-                        <thead>
-                            <th>IFRS(연결)</th>
-                            <th>2023/03</th>
-                            <th>2023/06(E)</th>
-                            <th>2023/09(E)</th>
-                            <th>2023/12(E)</th>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <th>매출액</th>
-                                <td>242,457</td>
-                                <td>262,892</td>
-                                <td>300,795</td>
-                                <td>307,855</td>
-                            </tr>
-                            <tr>
-                                <th>영업이익</th>
-                                <td>13596</td>
-                                <td>15244</td>
-                                <td>16647</td>
-                                <td>14160</td>
-                            </tr>
-                            <tr>
-                                <th>당기순이익</th>
-                                <td>7864</td>
-                                <td>8924</td>
-                                <td>8027</td>
-                                <td>6353</td>
-                            </tr>
-                            <tr>
-                                <th>ROE</th>
-                                <td>13.5</td>
-                                <td>10.76</td>
-                                <td>9.26</td>
-                                <td>6.55</td>
-                            </tr>
-                            <tr>
-                                <th>PER</th>
-                                <td>9.1</td>
-                                <td>10.36</td>
-                                <td>10.46</td>
-                                <td>11.32</td>
-                            </tr>
-                            <tr>
-                                <th>PBR</th>
-                                <td>1.16</td>
-                                <td>1.02</td>
-                                <td>0.91</td>
-                                <td>0.71</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <!-- 분기 END -->
-                <!-- 분기 Chart -->
-                <div class="fs-chard-div">
-                    <canvas class="fs-q-chart"></canvas>
-                    <script>
-                    financeSetChart('.fs-q-chart', ['2023/03(E)', '2023/06(E)', '2022/09(E)', '2023/12(E)'], [[242457, 262892, 300795, 307855], [5.6, 5.8, 5.5, 4.6], [3.24, 3.4, 2.7, 2.1]]);
-                    </script>
-                </div>
-                <!-- 연간 Chart END -->
-                <!-- 재무비율 -->
-                <div class="fs-head" style="margin-top: 20px">
-                    <div class="fs-title">재무비율</div>
-                    <div class="fs-unit">단위: %, 억원</div>
-                </div>
-                <div class="fs-div">
-                    <table class="fs-data">
-                        <thead>
-                            <th>IFRS(연결)</th>
-                            <th>2020/12</th>
-                            <th>2021/12</th>
-                            <th>2022/12</th>
-                            <th>2023/03</th>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <th>유동비율</th>
-                                <td>262.2</td>
-                                <td>247.6</td>
-                                <td>278.9</td>
-                                <td>282.0</td>
-                            </tr>
-                            <tr>
-                                <th>당좌비율</th>
-                                <td>219.8</td>
-                                <td>200.6</td>
-                                <td>212.2</td>
-                                <td>210.4</td>
-                            </tr>
-                            <tr>
-                                <th>부채비율</th>
-                                <td>37.1</td>
-                                <td>39.9</td>
-                                <td>26.4</td>
-                                <td>26.2</td>
-                            </tr>
-                            <tr>
-                                <th>유보율</th>
-                                <td>29,723.5</td>
-                                <td>32,906.5</td>
-                                <td>38,360.3</td>
-                                <td>38,898.8</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <!-- 재무비율 END -->
 
-                <!-- 현금흐름표 -->
-                <div class="fs-head" style="margin-top: 20px">
-                    <div class="fs-title">현금흐름표</div>
-                    <div class="fs-unit">단위: 억원</div>
-                </div>
-                <div class="fs-div">
-                    <table class="fs-data">
-                        <thead>
-                            <th>IFRS(연결)</th>
-                            <th>2020/12</th>
-                            <th>2021/12</th>
-                            <th>2022/12</th>
-                            <th>2023/03</th>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <th>영업활동</th>
-                                <td>20,018</td>
-                                <td>16,864</td>
-                                <td>16,273</td>
-                                <td>104</td>
-                            </tr>
-                            <tr>
-                                <th>투자활동</th>
-                                <td class="bad-value">-3,451</td>
-                                <td class="bad-value">-6,254</td>
-                                <td class="bad-value">-14,985</td>
-                                <td class="bad-value">-2,818</td>
-                            </tr>
-                            <tr>
-                                <th>재무활동</th>
-                                <td class="bad-value">-10,979</td>
-                                <td class="bad-value">-12,739</td>
-                                <td>5,516</td>
-                                <td>3,944</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <!-- 현금흐름표 END -->
 
-                <div class="a-line"></div>
+                    <!-- 분기 -->
+                    <div class="fs-head">
+                        <div class="fs-title">분기</div>
+                    </div>
+                    <div class="none-data">분기 데이터가 아직 없습니다.</div>
+                    <!-- 분기 END -->
+
+                
+                    <!-- 재무상태표 -->
+                    <div class="fs-head" style="margin-top: 20px">
+                        <div class="fs-title">재무상태표</div>
+                        <div class="fs-unit">단위: 억원</div>
+                    </div>
+                    <div class="fs-div">
+                        <table class="fs-data">
+                            <thead>
+                                <th>IFRS(연결)</th>
+                                <th>2020/12</th>
+                                <th>2021/12</th>
+                                <th>2022/12</th>
+                                <th>2023/03</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th>자산</th>
+                                    <td>25,584</td>
+                                    <td>30,675</td>
+                                    <td>50,919</td>
+                                    <td>53,107</td>
+                                </tr>
+                                <tr>
+                                    <th>부채</th>
+                                    <td>15,082</td>
+                                    <td>18,316</td>
+                                    <td>25,024</td>
+                                    <td>26,317</td>
+                                </tr>
+                                <tr>
+                                    <th>자본</th>
+                                    <td>10,501</td>
+                                    <td>12,359</td>
+                                    <td>25,894</td>
+                                    <td>26,790</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- 재무상태표 END -->
+                    <!-- 재무상태표 Chart -->
+                    <div class="fs-chard-div">
+                        <canvas class="fs-bar-chart"></canvas>
+                        <script>
+                            const fsBarChart = document.querySelector('.fs-bar-chart').getContext('2d');
+                            const deptRatio = [143.62, 148.2, 96.64, 98.23];
+                            const fsBarCanvas = new Chart(fsBarChart, {
+                                type: 'bar',
+                                data: {
+                                    labels: ['2020/12', '2021/12', '2022/12', '2023/03'],
+                                    datasets: [{
+                                            label: '자본',
+                                            data: [10501, 12359, 25894, 26790],
+                                            backgroundColor: 'rgba(16, 163, 127, 0.2)',
+                                            borderColor: 'rgba(16, 163, 127, 1)',
+                                            borderWidth: 1,
+                                            stack: 'combined',
+                                            yAxisID: 'y1',
+                                        },
+                                        {
+                                            label: '부채',
+                                            data: [15082, 18316, 25024, 26317],
+                                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                            borderColor: 'rgba(255, 99, 132, 1)',
+                                            borderWidth: 1,
+                                            stack: 'combined',
+                                            yAxisID: 'y1',
+                                        }, {
+                                            label: '부채비율',
+                                            data: deptRatio,
+                                            backgroundColor: 'rgba(0, 0, 128, 0.2)',
+                                            borderColor: 'rgba(0, 0, 128, 1)',
+                                            borderWidth: 1,
+                                            type: 'line',
+                                            yAxisID: 'y2',
+                                        }
+                                    ]
+                                },
+                                options: {
+                                    scales: {
+                                        y1: {
+                                            beginAtZero: true,
+                                            stacked: true,
+                                            position: 'left',
+                                            ticks: {
+                                                stepSize: 10000,
+                                                callback: function(value, index, ticks) {
+                                                    return `${value.toLocaleString()}억원`;
+                                                }
+                                            }
+                                        },
+                                        y2: {
+                                            beginAtZero: true,
+                                            position: 'right',
+                                            grid: {
+                                                drawOnChartArea: false,
+                                            },
+                                            ticks: {
+                                                callback: function(value, index, ticks) {
+                                                    return `${value.toLocaleString()}%`;
+                                                }
+                                            },
+                                            min: Math.round((Math.min(...deptRatio) / 5) * 5) - 5,
+                                            max: Math.round((Math.max(...deptRatio) / 5) * 5) + 5,
+                                            stepSize: 5
+                                        }
+                                    },
+                                }
+                            });
+                        </script>
+                    </div>
+                    <!-- 재무상태표 Chart END -->
+
+
+
+                    <!-- 재무비율 -->
+                    <div class="fs-head" style="margin-top: 20px">
+                        <div class="fs-title">재무비율</div>
+                        <div class="fs-unit">단위: %, 억원</div>
+                    </div>
+                    <div class="fs-div">
+                        <table class="fs-data">
+                            <thead>
+                                <th>IFRS(연결)</th>
+                                <th>2020/12</th>
+                                <th>2021/12</th>
+                                <th>2022/12</th>
+                                <th>2023/03</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th>유동비율</th>
+                                    <td><span>124.8</span></td>
+                                    <td><span>124.3</span></td>
+                                    <td><span>140.1</span></td>
+                                    <td><span>156.4</span></td>
+                                </tr>
+                                <tr>
+                                    <th>당좌비율</th>
+                                    <td><span class="bad-value">65.3</span></td>
+                                    <td><span class="bad-value">52.0</span></td>
+                                    <td><span class="bad-value">80.1</span></td>
+                                    <td><span class="bad-value">95.7</span></td>
+                                </tr>
+                                <tr>
+                                    <th>부채비율</th>
+                                    <td><span class="good-value">143.6</span></td>
+                                    <td><span class="good-value">148.2</span></td>
+                                    <td><span class="good-value">96.6</span></td>
+                                    <td><span class="good-value">98.2</span></td>
+                                </tr>
+                                <tr>
+                                    <th>유보율</th>
+                                    <td>1,266.2</td>
+                                    <td>1,491.0</td>
+                                    <td>3,988.4</td>
+                                    <td>4,121.2</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="fs-comment-text">유보율은 높을수록 좋다.</div>
+                    <!-- 재무비율 END -->
+
+                    <!-- 현금흐름표 -->
+                    <div class="fs-head" style="margin-top: 20px">
+                        <div class="fs-title">현금흐름표</div>
+                        <div class="fs-unit">단위: 억원</div>
+                    </div>
+                    <div class="fs-div">
+                        <table class="fs-data">
+                            <thead>
+                                <th>IFRS(연결)</th>
+                                <th>2020/12</th>
+                                <th>2021/12</th>
+                                <th>2022/12</th>
+                                <th>2023/03</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th>영업활동</th>
+                                    <td><span>288</span></td>
+                                    <td><span class="minus-value">-437</span></td>
+                                    <td><span>2,108</span></td>
+                                    <td><span>941</span></td>
+                                </tr>
+                                <tr>
+                                    <th>투자활동</th>
+                                    <td><span class="minus-value">-27</span></td>
+                                    <td><span class="minus-value">-1,032</span></td>
+                                    <td><span>2,402</span></td>
+                                    <td><span class="minus-value">-2,701</span></td>
+                                </tr>
+                                <tr>
+                                    <th>재무활동</th>
+                                    <td><span class="minus-value">-69</span></td>
+                                    <td><span>1,930</span></td>
+                                    <td><span class="minus-value">-3,323</span></td>
+                                    <td><span>846</span></td>
+                                </tr>
+                                <tr>
+                                    <th rowspan="2">구분</th>
+                                    <td><span class="good-value">+/-/-</span></td>
+                                    <td>-/-/+</td>
+                                    <td>+/+/-</td>
+                                    <td><span class="good-value">+/-/+</span></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="good-value">우량</span></td>
+                                    <td>재활</td>
+                                    <td>과도기</td>
+                                    <td><span class="good-value">성장</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- 현금흐름표 END -->
+                    <div class="a-line"></div>
 
                 <!-- 적정주가 계산 파트 -->
                 <div class="report-title">적정주가 계산</div>
@@ -374,338 +509,337 @@
                 <div class="fs-chard-div">
                     <canvas class="fs-per-chart"></canvas>
                     <script>
-const perCanvas = document.querySelector('.fs-per-chart').getContext('2d');
-const nowValue= 318500;
-let calcPer = 0;
-const perChart = new Chart(perCanvas, {
-    type: 'line',
-    data: {
-        labels: ['올해 예상', '업종 평균', '별도 조정'],
-        datasets: [{
-            label: '적정주가',
-            data: [1064762, 1064762, calcPer],
-            backgroundColor: 'rgba(16, 163, 127, 0.2)',
-            borderColor: 'rgba(16, 163, 127, 1)',
-            borderWidth: 1,
-            type: 'bar'
-        }]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true,
-                position: 'left',
-                ticks: {
-                        callback: function(value, index, ticks) {
-                            return `${value.toLocaleString()}원`;
-                        }
-                    }
-            }
-        },
-        plugins: {
-            legend: {
-                onClick: (e) => e.stopPropagation()
-            },
-            annotation: {
-                annotations: {
-                    currentValue : {
+                    const perCanvas = document.querySelector('.fs-per-chart').getContext('2d');
+                    const nowValue= 318500;
+                    let calcPer = 0;
+                    const perChart = new Chart(perCanvas, {
                         type: 'line',
-                        mode: 'horizontal',
-                        scaleID: 'y',
-                        value: nowValue,
-                        borderColor: 'rgba(255, 127, 80, 1)',
-                        borderWidth: 1.5,
-                        label: {
-                            content: '현재 주가',
-                            enabled: true,
-                            position: 'top',
+                        data: {
+                            labels: ['올해 예상', '업종 평균', '별도 조정'],
+                            datasets: [{
+                                label: '적정주가',
+                                data: [1064762, 1064762, calcPer],
+                                backgroundColor: 'rgba(16, 163, 127, 0.2)',
+                                borderColor: 'rgba(16, 163, 127, 1)',
+                                borderWidth: 1,
+                                type: 'bar'
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    position: 'left',
+                                    ticks: {
+                                            callback: function(value, index, ticks) {
+                                                return `${value.toLocaleString()}원`;
+                                            }
+                                        }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    onClick: (e) => e.stopPropagation()
+                                },
+                                annotation: {
+                                    annotations: {
+                                        currentValue : {
+                                            type: 'line',
+                                            mode: 'horizontal',
+                                            scaleID: 'y',
+                                            value: nowValue,
+                                            borderColor: 'rgba(255, 127, 80, 1)',
+                                            borderWidth: 1.5,
+                                            label: {
+                                                content: '현재 주가',
+                                                enabled: true,
+                                                position: 'top',
+                                            }
+                                        },
+                                        label1: {
+                                            type: 'label',
+                                            yValue: nowValue,
+                                            content: ['현재 주가', `${nowValue.toLocaleString()}원`],
+                                            color: 'rgba(255, 127, 80, 1)',
+                                            font: {
+                                                size: 13,
+                                            }
+                                        }
+                                    } 
+                                }
+                            }
                         }
-                    },
-                    label1: {
-                        type: 'label',
-                        yValue: nowValue,
-                        content: ['현재 주가', `${nowValue.toLocaleString()}원`],
-                        color: 'rgba(255, 127, 80, 1)',
-                        font: {
-                            size: 13,
+                    });
+
+                    const perInput = document.querySelector('.per-input');
+                    const perHandler = (perValue)=>{
+                        const fairValue = document.querySelector('.per-fair-value');
+                        const fairPrice = document.querySelector('.per-fair-price');
+                        
+                        if( parseInt(perValue) > 100  ){
+                            perValue = 100;
                         }
-                    }
-                } 
-            }
-        }
-    }
-});
 
-const perInput = document.querySelector('.per-input');
-const perHandler = (perValue)=>{
-    const fairValue = document.querySelector('.per-fair-value');
-    const fairPrice = document.querySelector('.per-fair-price');
-    
-    if( parseInt(perValue) > 100  ){
-        perValue = 100;
-    }
+                        const earning = 14160; // 영업이익
+                        const stockCnt = 1504186; // 발행주식수
+                        const per = parseFloat(perValue);
 
-    const earning = 14160; // 영업이익
-    const stockCnt = 1504186; // 발행주식수
-    const per = parseFloat(perValue);
+                        // 기업가치
+                        let calcEarning = earning*per;
+                        let calcPrice = (calcEarning/stockCnt)*10000000;
 
-    // 기업가치
-    let calcEarning = earning*per;
-    let calcPrice = (calcEarning/stockCnt)*10000000;
-
-    calcEarning = calcEarning.toFixed(1);
-    calcPrice = calcPrice.toFixed(0);
-    
-    if( isNaN(calcEarning) ){
-        fairValue.innerHTML = '';
-        fairPrice.innerHTML = '';
-        calcPrice = 0;
-    }else{
-        fairValue.innerHTML = `${parseFloat(calcEarning).toLocaleString()}억원`;
-        fairPrice.innerHTML = `${parseInt(calcPrice).toLocaleString()}원`;
-    }
-
-    calcPer = calcPrice;
-    perChart.data.datasets[0].data[2] = calcPer;
-
-    perChart.update();
-};
-
-perInput.addEventListener('input', (event)=>{
-    perHandler(event.target.value);
-});
-perHandler(10);
-                </script>
-                </div>
-                <!-- 영업이익*PER Chart END -->
-                <!-- SRIM 계산 -->
-                <div class="fs-head" style="margin-top: 20px">
-                    <div class="fs-title">SRIM</div>
-                </div>
-                <div class="standard-info">
-                    <div class="info-one">
-                        <div class="cell-head">발행주식수</div>
-                        <div class="cell-desc">402,044,203</div>
-                    </div>
-                    <div class="info-one">
-                        <div class="cell-head">자사주</div>
-                        <div class="cell-desc">6,962,511</div>
-                    </div>
-
-                    <div class="info" style="margin-top: 15px;">
-                        <div class="info-cell">
-                            <div class="cell-head">지배주주지분</div>
-                            <div class="cell-desc">393,379</div>
-                        </div>
-        
-                        <div class="info-cell">
-                            <div class="cell-head">BBB-</div>
-                            <div class="cell-desc">10.85%</div>
-                        </div>
-                        <div class="info-one">
-                            <div class="cell-head">예상 ROE</div>
-                            <div class="cell-desc">19.33%</div>
-                        </div>
-                        <div class="info-one">
-                            <div class="cell-head">가중 ROE</div>
-                            <div class="cell-desc">13.02%</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="srim-page">
-                    <div class="srim-roe-head">
-                        <div class="srim-roe roe-selected">예상 ROE</div>
-                        <div class="srim-roe">가중 ROE</div>
-                        <div class="srim-roe-info">기준 ROE 선택</div>
-                    </div>
-                    <div class="fs-div srim-result" style="margin-top: 10px">
-                        <table class="fs-data srim-table">
-                            <thead>
-                                <th>초과이익</th>
-                                <th>기업가치</th>
-                                <th>적정주가</th>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <th>이익 지속</th>
-                                    <td>1700,830.97억</td>
-                                    <td>177,389원</td>
-                                </tr>
-                                <tr>
-                                    <th>10% 감소</th>
-                                    <td>537,372.69억</td>
-                                    <td>136,016원</td>
-                                </tr>
-                                <tr>
-                                    <th>20% 감소</th>
-                                    <td>479,884.13억</td>
-                                    <td>121,465원</td>
-                                </tr>
-                                <tr>
-                                    <th>30% 감소</th>
-                                    <td>379,884.13억</td>
-                                    <td>111,465원</td>
-                                </tr>
-                                <tr>
-                                    <th>40% 감소</th>
-                                    <td>279,884.13억</td>
-                                    <td>91,465원</td>
-                                </tr>
-                                <tr>
-                                    <th>50% 감소</th>
-                                    <td>179,884.13억</td>
-                                    <td>71,465원</td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                        <table class="fs-data srim-table post-fs-hidden">
-                            <thead>
-                                <th>초과이익</th>
-                                <th>기업가치</th>
-                                <th>적정주가</th>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <th>이익 지속</th>
-                                    <td>1800,830.97억</td>
-                                    <td>187,389원</td>
-                                </tr>
-                                <tr>
-                                    <th>10% 감소</th>
-                                    <td>547,372.69억</td>
-                                    <td>146,016원</td>
-                                </tr>
-                                <tr>
-                                    <th>20% 감소</th>
-                                    <td>479,884.13억</td>
-                                    <td>131,465원</td>
-                                </tr>
-                                <tr>
-                                    <th>30% 감소</th>
-                                    <td>379,884.13억</td>
-                                    <td>111,465원</td>
-                                </tr>
-                                <tr>
-                                    <th>40% 감소</th>
-                                    <td>279,884.13억</td>
-                                    <td>91,465원</td>
-                                </tr>
-                                <tr>
-                                    <th>50% 감소</th>
-                                    <td>179,884.13억</td>
-                                    <td>71,465원</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <!-- SRIM END -->
-                <!-- SRIM Chart -->
-                <div class="fs-chard-div">
-                    <canvas class="fs-srim-chart"></canvas>
-                </div>
-                <script>
-// SRIM CHART
-const srimCanvas = document.querySelector('.fs-srim-chart').getContext('2d');
-const srimResults = [
-    [267613, 369561, 405503, 425503, 455503, 485503],
-    [485503, 455503, 425503, 405503, 369561, 267613]
-]
-let setSRIM = srimResults[0];
-const srimChart = new Chart(srimCanvas, {
-    type: 'line',
-    data: {
-        labels: ['이익 지속', '10% 감소', '20% 감소', '30% 감소', '40% 감소', '50% 감소'],
-        datasets: [{
-            label: '적정주가',
-            data: setSRIM,
-            backgroundColor: 'rgba(16, 163, 127, 0.2)',
-            borderColor: 'rgba(16, 163, 127, 1)',
-            borderWidth: 1,
-            type: 'bar'
-        }]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true,
-                position: 'left',
-                ticks: {
-                        callback: function(value, index, ticks) {
-                            return `${value.toLocaleString()}원`;
+                        calcEarning = calcEarning.toFixed(1);
+                        calcPrice = calcPrice.toFixed(0);
+                        
+                        if( isNaN(calcEarning) ){
+                            fairValue.innerHTML = '';
+                            fairPrice.innerHTML = '';
+                            calcPrice = 0;
+                        }else{
+                            fairValue.innerHTML = `${parseFloat(calcEarning).toLocaleString()}억원`;
+                            fairPrice.innerHTML = `${parseInt(calcPrice).toLocaleString()}원`;
                         }
-                    }
-            }
-        },
-        plugins: {
-            legend: {
-                onClick: (e) => e.stopPropagation()
-            },
-            annotation: {
-                annotations: {
-                    currentValue : {
+
+                        calcPer = calcPrice;
+                        perChart.data.datasets[0].data[2] = calcPer;
+
+                        perChart.update();
+                    };
+
+                    perInput.addEventListener('input', (event)=>{
+                        perHandler(event.target.value);
+                    });
+                    perHandler(10);
+                                    </script>
+                                    </div>
+                                    <!-- 영업이익*PER Chart END -->
+                                    <!-- SRIM 계산 -->
+                                    <div class="fs-head" style="margin-top: 20px">
+                                        <div class="fs-title">SRIM</div>
+                                    </div>
+                                    <div class="standard-info">
+                                        <div class="info-one">
+                                            <div class="cell-head">발행주식수</div>
+                                            <div class="cell-desc">402,044,203</div>
+                                        </div>
+                                        <div class="info-one">
+                                            <div class="cell-head">자사주</div>
+                                            <div class="cell-desc">6,962,511</div>
+                                        </div>
+
+                                        <div class="info" style="margin-top: 15px;">
+                                            <div class="info-cell">
+                                                <div class="cell-head">지배주주지분</div>
+                                                <div class="cell-desc">393,379</div>
+                                            </div>
+                            
+                                            <div class="info-cell">
+                                                <div class="cell-head">BBB-</div>
+                                                <div class="cell-desc">10.85%</div>
+                                            </div>
+                                            <div class="info-one">
+                                                <div class="cell-head">예상 ROE</div>
+                                                <div class="cell-desc">19.33%</div>
+                                            </div>
+                                            <div class="info-one">
+                                                <div class="cell-head">가중 ROE</div>
+                                                <div class="cell-desc">13.02%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="srim-page">
+                                        <div class="srim-roe-head">
+                                            <div class="srim-roe roe-selected">예상 ROE</div>
+                                            <div class="srim-roe">가중 ROE</div>
+                                            <div class="srim-roe-info">기준 ROE 선택</div>
+                                        </div>
+                                        <div class="fs-div srim-result" style="margin-top: 10px">
+                                            <table class="fs-data srim-table">
+                                                <thead>
+                                                    <th>초과이익</th>
+                                                    <th>기업가치</th>
+                                                    <th>적정주가</th>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <th>이익 지속</th>
+                                                        <td>1700,830.97억</td>
+                                                        <td>177,389원</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>10% 감소</th>
+                                                        <td>537,372.69억</td>
+                                                        <td>136,016원</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>20% 감소</th>
+                                                        <td>479,884.13억</td>
+                                                        <td>121,465원</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>30% 감소</th>
+                                                        <td>379,884.13억</td>
+                                                        <td>111,465원</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>40% 감소</th>
+                                                        <td>279,884.13억</td>
+                                                        <td>91,465원</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>50% 감소</th>
+                                                        <td>179,884.13억</td>
+                                                        <td>71,465원</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+
+                                            <table class="fs-data srim-table post-fs-hidden">
+                                                <thead>
+                                                    <th>초과이익</th>
+                                                    <th>기업가치</th>
+                                                    <th>적정주가</th>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <th>이익 지속</th>
+                                                        <td>1800,830.97억</td>
+                                                        <td>187,389원</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>10% 감소</th>
+                                                        <td>547,372.69억</td>
+                                                        <td>146,016원</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>20% 감소</th>
+                                                        <td>479,884.13억</td>
+                                                        <td>131,465원</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>30% 감소</th>
+                                                        <td>379,884.13억</td>
+                                                        <td>111,465원</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>40% 감소</th>
+                                                        <td>279,884.13억</td>
+                                                        <td>91,465원</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>50% 감소</th>
+                                                        <td>179,884.13억</td>
+                                                        <td>71,465원</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <!-- SRIM END -->
+                                    <!-- SRIM Chart -->
+                                    <div class="fs-chard-div">
+                                        <canvas class="fs-srim-chart"></canvas>
+                                    </div>
+                                    <script>
+                    // SRIM CHART
+                    const srimCanvas = document.querySelector('.fs-srim-chart').getContext('2d');
+                    const srimResults = [
+                        [267613, 369561, 405503, 425503, 455503, 485503],
+                        [485503, 455503, 425503, 405503, 369561, 267613]
+                    ]
+                    let setSRIM = srimResults[0];
+                    const srimChart = new Chart(srimCanvas, {
                         type: 'line',
-                        mode: 'horizontal',
-                        scaleID: 'y',
-                        value: nowValue,
-                        borderColor: 'rgba(255, 127, 80, 1)',
-                        borderWidth: 1.5,
-                        label: {
-                            content: '현재 주가',
-                            enabled: true,
-                            position: 'top',
+                        data: {
+                            labels: ['이익 지속', '10% 감소', '20% 감소', '30% 감소', '40% 감소', '50% 감소'],
+                            datasets: [{
+                                label: '적정주가',
+                                data: setSRIM,
+                                backgroundColor: 'rgba(16, 163, 127, 0.2)',
+                                borderColor: 'rgba(16, 163, 127, 1)',
+                                borderWidth: 1,
+                                type: 'bar'
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    position: 'left',
+                                    ticks: {
+                                            callback: function(value, index, ticks) {
+                                                return `${value.toLocaleString()}원`;
+                                            }
+                                        }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    onClick: (e) => e.stopPropagation()
+                                },
+                                annotation: {
+                                    annotations: {
+                                        currentValue : {
+                                            type: 'line',
+                                            mode: 'horizontal',
+                                            scaleID: 'y',
+                                            value: nowValue,
+                                            borderColor: 'rgba(255, 127, 80, 1)',
+                                            borderWidth: 1.5,
+                                            label: {
+                                                content: '현재 주가',
+                                                enabled: true,
+                                                position: 'top',
+                                            }
+                                        },
+                                        label1: {
+                                            type: 'label',
+                                            yValue: nowValue,
+                                            content: ['현재 주가', `${nowValue.toLocaleString()}원`],
+                                            color: 'rgba(255, 127, 80, 1)',
+                                            font: {
+                                                size: 13,
+                                            }
+                                        }
+                                    } 
+                                }
+                            }
                         }
-                    },
-                    label1: {
-                        type: 'label',
-                        yValue: nowValue,
-                        content: ['현재 주가', `${nowValue.toLocaleString()}원`],
-                        color: 'rgba(255, 127, 80, 1)',
-                        font: {
-                            size: 13,
-                        }
-                    }
-                } 
-            }
-        }
-    }
-});
-// ROE 선택 기능
-const roeBtn = document.querySelectorAll('.srim-roe');
-const roeSelected = 'roe-selected';
-const roeHandler = (index)=>{
-    const roeHead = document.querySelector('.srim-roe-head');
-    const selectedRoe = roeHead.querySelector(`.${roeSelected}`);
-    const roeTables = document.querySelectorAll('.srim-table');
-    selectedRoe.classList.remove(roeSelected);
-    
-    roeBtn[index].classList.add(roeSelected);
-    roeTables.forEach((table)=>{
-        table.classList.add('post-fs-hidden');
-    });
-    roeTables[index].classList.remove('post-fs-hidden');
+                    });
+                    // ROE 선택 기능
+                    const roeBtn = document.querySelectorAll('.srim-roe');
+                    const roeSelected = 'roe-selected';
+                    const roeHandler = (index)=>{
+                        const roeHead = document.querySelector('.srim-roe-head');
+                        const selectedRoe = roeHead.querySelector(`.${roeSelected}`);
+                        const roeTables = document.querySelectorAll('.srim-table');
+                        selectedRoe.classList.remove(roeSelected);
+                        
+                        roeBtn[index].classList.add(roeSelected);
+                        roeTables.forEach((table)=>{
+                            table.classList.add('post-fs-hidden');
+                        });
+                        roeTables[index].classList.remove('post-fs-hidden');
 
-    // Chart update
-    setSRIM = srimResults[index];
-    srimChart.data.datasets[0].data = setSRIM;
+                        // Chart update
+                        setSRIM = srimResults[index];
+                        srimChart.data.datasets[0].data = setSRIM;
 
-    srimChart.update();
-};
+                        srimChart.update();
+                    };
 
-roeBtn.forEach((roe, index)=>{
-    roe.addEventListener('click', ()=>{
-        roeHandler(index);
-    });
-});
-                </script>
+                    roeBtn.forEach((roe, index)=>{
+                        roe.addEventListener('click', ()=>{
+                            roeHandler(index);
+                        });
+                    });
+                                    </script>
             </div>
-            <!-- SRIM Chart END -->
-            <div class="a-line"></div>
+                                <!-- SRIM Chart END -->
+                                <div class="a-line"></div>
 
         </div>
         <!-- END -->
-
     </div>
 </body>
 </html>

@@ -2,6 +2,7 @@
 @gray-color: #bbbbbb;
 @good-color: #10a37f;
 @bad-color: #ff2828;
+@minus-color: #3790ff;
 @box-shadow-color: rgba(0, 0, 0, 0.1);
 @break-point: 600px;
 @mobile: ~"(max-width: 724px)";
@@ -143,7 +144,9 @@
             width: 100%;
             font-size: 0.8rem;
             .max-width-set();
+            margin-bottom: 0 !important;
             border-collapse: collapse;
+            table-layout: fixed;
 
             th, td {
                 padding: 5px;
@@ -153,7 +156,7 @@
                 .bg-set();
                 
                 &:first-child {
-                    width: 120px;
+                    width: 90px;
                 }
             }
 
@@ -166,12 +169,9 @@
                 transition: background-color 0.3s;
                 &:hover {
                     background-color: fade(@basic-color, 15%);
-                }
-            }
-
-            td.good-value, td.bad-value{
-                &:hover {
-                    font-weight: bold;
+                    .good-value, .bad-value {
+                        font-weight: bold;
+                    }
                 }
             }
 
@@ -197,6 +197,7 @@
     }
     
     width: 40px;
+    height: 20px !important;
     text-align: center;
 
     // For Firefox
@@ -260,7 +261,7 @@
 
 .srim-result {
     position: relative;
-    min-height: 195px;
+    min-height: 215px;
     .srim-table {
         position: absolute;
         top:0;
@@ -289,7 +290,7 @@
     }
 
     .srim-result {
-        min-height: 181px;
+        min-height: 200px;
     }
 }
 
@@ -300,4 +301,23 @@
 
 .bad-value {
     color: @bad-color;
+}
+
+.minus-value {
+    color: @minus-color;
+}
+
+.weight-value {
+    background-color: #fffca299;
+}
+
+.none-data {
+    padding-left: 0.8rem;
+    margin-bottom: 50px;
+}
+
+.fs-comment-text {
+    font-size: 0.7rem;
+    padding-left: 0.5rem;
+    color: @good-color;
 }

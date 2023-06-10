@@ -1,5 +1,12 @@
+
+<link rel="stylesheet/less" type="text/css" href="https://tistory1.daumcdn.net/tistory/6187703/skin/images/analyze.less" />
+<script src="https://cdn.jsdelivr.net/npm/less"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@latest/dist/chartjs-plugin-annotation.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartist-plugin-legend/0.6.2/chartist-plugin-legend.min.js" integrity="sha512-J82gmCXFu+eMIvhK2cCa5dIiKYfjFY4AySzCCjG4EcnglcPQTST/nEtaf5X6egYs9vbbXpttR7W+wY3Uiy37UQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
 // 연간/분기 차트 생성
-const financeSetChart = (className, labels, datas)=>{
+const financeSetChart = (className, labels, datas) => {
     const ctx = document.querySelector(className).getContext('2d');
     const myChart = new Chart(ctx, {
         type: 'line',
@@ -21,7 +28,7 @@ const financeSetChart = (className, labels, datas)=>{
                 borderWidth: 1,
                 yAxisID: 'y2',
             }, {
-                label: '순이익률',
+                label: '당기순이익률',
                 data: datas[2],
                 backgroundColor: 'rgba(0, 0, 128, 0.2)',
                 borderColor: 'rgba(0, 0, 128, 1)',
@@ -34,10 +41,10 @@ const financeSetChart = (className, labels, datas)=>{
                 y1: {
                     position: 'left',
                     ticks: {
-                            callback: function(value, index, ticks) {
-                                return `${value.toLocaleString()}억원`;
-                            }
+                        callback: function(value, index, ticks) {
+                            return `${value.toLocaleString()}억원`;
                         }
+                    }
                 },
                 y2: {
                     beginAtZero: true,
@@ -55,3 +62,9 @@ const financeSetChart = (className, labels, datas)=>{
         }
     });
 }
+</script>
+<!-- START -->
+<!-- Head -->
+<h1>주식종목 간단 분석:삼성SDI_2023/06/11 기준</h1>
+<div class="a-line"></div>
+<!-- Head END -->

@@ -83,7 +83,7 @@ def get_year_fh(soup) :
         result[key] = new_values
         
     # 각 value를 ['3_years_ago', '2_years_ago', '1_years_ago', 'estimated']와 매칭
-    years = ['y3', 'y2', 'y1', 'ce']
+    years = ['c1', 'c2', 'c3', 'c4']
 
     for key, values in result.items():
         result[key] = dict(zip(years, values))
@@ -172,8 +172,8 @@ def get_quarter_fh(soup) :
                 new_values.append(None)
         result[key] = new_values
         
-    # 각 value를 ['q1', 'q2', 'q3', 'q4']와 매칭
-    qts = ['q1', 'q2', 'q3', 'q4']
+    # 각 value를 ['y1', 'y2', 'y3', 'y4']와 매칭
+    qts = ['c1', 'c2', 'c3', 'c4']
 
     for key, values in result.items():
         result[key] = dict(zip(qts, values))
@@ -189,7 +189,7 @@ def get_quarter_fh(soup) :
         else :
             qts_text.append(chk_a.get_text(strip=True))
 
-    result['qts_chk'] = dict(zip(qts, qts_text))
+    result['year_chk'] = dict(zip(qts, qts_text))
 
     return result
 
@@ -302,7 +302,8 @@ def get_stock_rate(gicode) :
         if not th_a == None :
             a_tx = th_a.get_text(strip=True).replace('&nbsp', '').replace('\xa0', ' ')
             if a_tx in ['유동비율', '당좌비율', '부채비율', '유보율'] :
-                tds =[t.get_text(strip=True) for t in t.find_all('td')[1:]]
+                tds = [t.get_text(strip=True).replace(',', '') for t in t.find_all('td')[1:]]
+                tds = [float(td) if '.' in td else int(td) for td in tds]
                 rate[a_tx] = list(zip(dates, tds))
 
     return rate
@@ -367,6 +368,7 @@ def get_current_info(gicode) :
     rate_info = soup.find('div', {'class': 'rate_info'})
     no_today = rate_info.find('p', {'class': 'no_today'}).text.strip()
     no_today = no_today.split('\n')[0]
+    no_today = int(no_today.replace(',', ''))
 
     now = datetime.now()
     formatted_date = now.strftime("%Y/%m/%d %H:%M")
@@ -439,7 +441,7 @@ def SRIM(gicode) :
     cfs = stock['year']
 
     # 작년말 지배주주지분 ✅
-    interest = cfs['지배주주지분']['y1']
+    interest = cfs['지배주주지분']['c3']
 
     # ROE ✅
     roe = None
@@ -450,9 +452,9 @@ def SRIM(gicode) :
 
     if ce_roe == None :
         # 추정 ROE : 가중 평균
-        y3 = cfs['ROE']['y3']*1
-        y2 = cfs['ROE']['y2']*2
-        y1 = cfs['ROE']['y1']*3
+        y3 = cfs['ROE']['c1']*1
+        y2 = cfs['ROE']['c2']*2
+        y1 = cfs['ROE']['c3']*3
 
         sum_y = y3 + y2 + y1
         roe = float(sum_y/6)
