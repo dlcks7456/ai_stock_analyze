@@ -359,7 +359,7 @@ def get_cash_table(gicode) :
     }
 
 
-# 현재가 추출 (NAVER 금융) + 업종 PER
+# 현재가 추출 (NAVER 금융)
 def get_current_info(gicode) :
     url = f'https://finance.naver.com/item/main.naver?code={str(gicode)}'
     response = requests.get(url)
@@ -378,6 +378,38 @@ def get_current_info(gicode) :
         'base_date': formatted_date
     }
 
+
+# 업종 PER 추출
+def get_same_per(gicode) :
+    # NAVER
+    nv_url = f'https://finance.naver.com/item/main.naver?code={str(gicode)}'
+    nv_response = requests.get(nv_url)
+    nv_soup = BeautifulSoup(nv_response.text, 'html.parser')
+
+    # NAVER 동일업종 PER 정보
+    nv_same_per = None
+    table = nv_soup.find('table', {'summary': '동일업종 PER 정보'})
+    table_em = table.find('em').get_text(strip=True)
+    try :
+        nv_same_per = float(table_em)
+    except :
+        nv_same_per = None
+
+    # Company Guide
+    cg_soup = get_snapshot_soup(gicode)
+    cg_same_per = None
+    dl = cg_soup.find('div', {'id': 'corp_group2'}).findChildren(recursive=False)[2]
+    dd = dl.find_all('dd')[-1]
+    try :
+        cg_same_per = float(dd.get_text(strip=True))
+    except :
+        cg_same_per = None
+
+    return {
+        'naver': nv_same_per,
+        'company': cg_same_per
+    }
+    
 
 # 등급별금리스프레드 추출
 def get_spread() :
@@ -425,6 +457,7 @@ def get_stock_items(gicode) :
     'rate': get_stock_rate(gicode),
     'cash_table': dc['cash_table'],
     'daecha_table': dc['daecha_table'],
+    'same_per': get_same_per(gicode),
     'bbb' : get_spread()
   }
 
@@ -432,6 +465,20 @@ def get_stock_items(gicode) :
 
 
 ##############################
+# 가중평균 계산
+def set_weight_aver(*values) :
+    n = len(values)
+    denominator = (n * (n + 1))//2 # 분모
+    weight_values = []
+    weight = 1 # 초기 가중치
+    for v in values :
+        weight_values.append(v*weight)
+        weight+=1
+    
+    molecule = sum(weight_values)
+    result = molecule/denominator
+    result = round(result, 2)
+    return result
 
 # SRIM Calculator
 def SRIM(gicode) :
@@ -445,107 +492,80 @@ def SRIM(gicode) :
 
     # ROE ✅
     roe = None
-    ce_roe = cfs['ROE']['ce'] 
+    ce_roe = cfs['ROE']['c4'] 
 
-    # 예상 ROE가 없는 경우 추정 ROE로 계산 ✅
-    use_roe = '예상 ROE'
+    # 추정 ROE : 가중 평균
+    ys = [float(cfs['ROE'][y]) for y in ['c1', 'c2', 'c3'] if not cfs['ROE'][y] == None]
+    w_roe = set_weight_aver(*ys)
 
-    if ce_roe == None :
-        # 추정 ROE : 가중 평균
-        y3 = cfs['ROE']['c1']*1
-        y2 = cfs['ROE']['c2']*2
-        y1 = cfs['ROE']['c3']*3
-
-        sum_y = y3 + y2 + y1
-        roe = float(sum_y/6)
-
-        use_roe = '가중 평균 ROE'
-    else :
-        # 예상 ROE
-        roe = float(ce_roe)
-
-    # BBB- 할인율 ✅
-    bbb = float(stock['bbb'])
-
-    # 기업가치(시가총액) ✅
-    numerator = interest*(roe - bbb)
-    b0 = interest + (numerator/bbb)
-
-    # 주식수 ✅
-    # 발행주식수
-    shares_number = int(stock['common'])
-    # 자사주
-    treasury_number = int(stock['treasury'])
-    stock_cnt = shares_number - treasury_number
-
-    # 적정주가 ✅
-    fair_value = (b0*100000000)/stock_cnt
-
-    # 초과이익 ✅
-    excess_profit = interest*((roe/100) - (bbb/100))
-
-    ## TEST ##
-    # roe = float(15.16)
-    # bbb = float(7.92)
-    # interest = 48809
-    # numerator = interest*(roe - bbb)
-    # b0 = b0 = interest + (numerator/bbb)
-    # stock_cnt = 15054186 - 357302
-    # fair_value = (b0*100000000)/stock_cnt
-    # excess_profit = interest*((roe/100) - (bbb/100))
-    #####
+    if not ce_roe == None :
+        ce_roe = float(ce_roe)
 
     ws = {
         'w1' : 1,
         'w2' : float(0.9),
-        'w3' : float(0.8)
+        'w3' : float(0.8),
+        'w4' : float(0.7),
+        'w5' : float(0.6),
+        'w6' : float(0.5),
     }
 
+    # BBB- 할인율 ✅
+    bbb = float(stock['bbb'])
+
+
     # SRIM 최종 결과 ✅
-    final_values = {}
+    return_values = {}
 
-    # w1 = 2차 매도가(적정주가)
-    # w2 = 1차 매도가
-    # w3 = 적정매수가
+    for key, roe in [('ce', ce_roe), ('we', w_roe)] :
+        final_values = {}
+        if roe != None :
+            # 기업가치(시가총액) ✅
+            numerator = interest*(roe - bbb)
+            b0 = interest + (numerator/bbb)
 
-    for key, w in ws.items() :
-        denominator = (1+float(bbb/100))-w
-        w_calc = w/denominator
-        m_calc = interest + (excess_profit*w_calc)
-        profit = (m_calc/stock_cnt)*100000000
-        final_values[key] = profit
+            # 주식수 ✅
+            # 발행주식수
+            shares_number = int(stock['common'])
+            # 자사주
+            treasury_number = int(stock['treasury'])
+            stock_cnt = shares_number - treasury_number
 
-    # 투자 여부
-    w1 = final_values['w1']
-    w2 = final_values['w2']
-    w3 = final_values['w3']
+            # 적정주가 ✅
+            fair_value = (b0*100000000)/stock_cnt
 
-    # % 비율
-    w3_w1 = (w1 - w3)
-    w3_w1 = round((w3_w1/w3)*100, 2)
+            # 초과이익 ✅
+            excess_profit = interest*((roe/100) - (bbb/100))
 
-    w3_w2 = (w2 - w3)
-    w3_w2 = round((w3_w2/w3)*100, 2)
+            for k, w in ws.items() :
+                denominator = (1+float(bbb/100))-w
+                w_calc = w/denominator
+                svalue = interest + (excess_profit*w_calc)
+                sprice = (svalue/stock_cnt)*100000000
+                final_values[k] = {'svalue': round(svalue), 'sprice': round(sprice)}
 
-    flag = True
-    if w1 <= w3 :
-        flag = False
-    
-    if fair_value < 0 :
-        flag = False
+            # 투자 여부
+            w1 = final_values['w1']
+            w3 = final_values['w3']
+
+            flag = True
+            if w1['sprice'] <= w3['sprice'] :
+                flag = False
+            
+            if fair_value < 0 :
+                flag = False
+
+            return_values[key] = {
+                'roe': roe,
+                'flag': flag,
+                'w': final_values
+            }
 
     return {
         '지배주주지분': interest,
         '유통주식수': f'{format(stock_cnt, ",")}주',
-        'ROE': round(roe, 2),
-        '기준ROE': use_roe,
         '할인율': round(bbb, 2),
-        '기업가치': f'{round(b0)}억원',
-        '적정주가': f'{format(round(fair_value), ",")}원',
-        '이익_지속': round(w1),
-        '10%_감소': round(w2),
-        '20%_감소': round(w3),
-        'flag': flag,
+        'srim': return_values
     }
 
 
@@ -604,3 +624,1178 @@ def MPER(gicode) :
         'flag': flag,
     }
 
+
+
+
+##### GET HTML
+def chk_int(value) :
+    if type(value) == int or type(value) == float :
+        return True
+    else :
+        return False
+
+def comma(value, rd=1) :
+    if type(value) == int :
+        return format(round(value, rd), ',')
+    elif type(value) == float :
+        return "{:,.2f}".format(value)
+    else :
+        return ''
+    
+def int_cond(value) :
+    if chk_int(value) :
+        return True
+    else :
+        return False
+    
+# ROE 기준값
+def roe_value(value) :
+    if not chk_int(value) :
+        return ''
+
+    if value >= 15 :
+        return ' class="good-value"'
+    else :
+        if value <= 5 :
+            return ' class="bad-value"'
+        else :
+            return ''
+        
+
+# PER 기준값
+def per_value(value) :
+    if not chk_int(value) :
+        return ''
+
+    if value <= 10 :
+        return ' class="good-value"'
+    else :
+        if value >= 20 :
+            return ' class="bad-value"'
+        else :
+            return ''
+
+# PBR 기준값
+def pbr_value(value) :
+    if not chk_int(value) :
+        return ''
+
+    if value < 1 :
+        return ' class="good-value"'
+    else :
+        if value >= 1.5 :
+            return ' class="bad-value"'
+        else :
+            return ''
+
+# 가중치 계산 여부 튜플 생성
+def chk_weight(fs_value_dict) :
+    return {key: [value, False] for key, value in fs_value_dict.items()}
+
+def int_or_float(s):
+    # 문자열이 실수를 나타내는지 확인
+    if '.' in s:
+        # 실수로 변환
+        return float(s)
+    else:
+        # 정수로 변환
+        return int(s)
+
+
+# HTML 재무제표(연간/분기)
+def fs_table(base, txt) :
+    base = base.copy()
+    table_head = list(base['year_chk'].values())
+    sales = chk_weight(base['매출액'])
+    profit = chk_weight(base['영업이익'])
+    real_profit = chk_weight(base['당기순이익'])
+    interest = chk_weight(base['지배주주지분'])
+    roe = chk_weight(base['ROE'])
+    per = chk_weight(base['PER수정주가'])
+    pbr = chk_weight(base['PBR수정주가'])
+
+    chart_class = 'fs-y-chart' if txt == '연간' else 'fs-q-chart'
+
+    # 올해 예상이 없는 경우 가중평균으로 계산
+    for metr in [sales, profit, real_profit, interest, roe, per, pbr] :
+        nones = [v for v, w in list(metr.values()) if v == None]
+        
+        if len(nones) >= 3 :
+            continue
+
+        while nones :
+            for key, val in metr.items() :
+                if val[0] == None :
+                    values = [v for v, w in list(metr.values()) if v != None]
+                    wavg = set_weight_aver(*values)
+                    metr[key] = [wavg, True]
+                    break
+            nones = [v for v, w in list(metr.values()) if v == None]
+
+    final_values = [list(metr.values()) for metr in [sales, profit, real_profit, interest, roe, per, pbr]]
+    none_data_flag = []
+   
+    for value in final_values :
+        if all(v == None for v, w in value) or len([v for v, w in value if v != None]) == 1 :
+            none_data_flag.append(True)
+        else :
+            none_data_flag.append(False)
+    
+    if all(none_data_flag) :
+        return f'''
+            <!-- {txt} -->
+            <div class="fs-head">
+                <div class="fs-title">{txt}</div>
+            </div>
+            <div class="none-data">{txt} 데이터가 아직 없습니다.</div>
+            <!-- {txt} END -->'''
+
+    # 영업이익률
+    profit_ratio = [round(((profit[key][0])/(value[0]))*100, 2) if all([profit[key][0] != None, value[0] != None]) else '' for key, value in sales.items()]
+    # 순이익률
+    real_profit_ratio = [round(((real_profit[key][0])/(value[0]))*100, 2) if all([real_profit[key][0] != None, value[0] != None]) else '' for key, value in sales.items()]
+
+    html_fs = f'''
+            <!-- {txt} -->
+            <div class="fs-head">
+                <div class="fs-title">{txt}</div>
+                <div class="fs-unit">단위: 억원, %, 배</div>
+            </div>
+            <div class="fs-div">
+                <table class="fs-data">
+                    <thead>
+                        <th>IFRS(연결)</th>
+                        <th>{table_head[0]}</th>
+                        <th>{table_head[1]}</th>
+                        <th>{table_head[2]}</th>
+                        <th>{table_head[3]}</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>매출액</th>
+                            <td{' class="weight-value"' if sales['c1'][1] else ''}><span{' class="bad-value"' if int_cond(sales['c1'][0]) and (sales['c1'][0] < 50) and (txt=='연간') else ''}>{comma(sales['c1'][0])}</span></td>
+                            <td{' class="weight-value"' if sales['c2'][1] else ''}><span{' class="bad-value"' if int_cond(sales['c2'][0]) and (sales['c2'][0] < 50) and (txt=='연간') else ''}>{comma(sales['c2'][0])}</span></td>
+                            <td{' class="weight-value"' if sales['c3'][1] else ''}><span{' class="bad-value"' if int_cond(sales['c3'][0]) and (sales['c3'][0] < 50) and (txt=='연간') else ''}>{comma(sales['c3'][0])}</span></td>
+                            <td{' class="weight-value"' if sales['c4'][1] else ''}><span{' class="bad-value"' if int_cond(sales['c4'][0]) and (sales['c4'][0] < 50) and (txt=='연간') else ''}>{comma(sales['c4'][0])}</span></td>
+                        </tr>
+                        <tr>
+                            <th>영업이익</th>
+                            <td{' class="weight-value"' if profit['c1'][1] else ''}><span{' class="bad-value"' if int_cond(profit['c1'][0]) and (profit['c1'][0] < 0) else ''}>{comma(profit['c1'][0])}</span></td>
+                            <td{' class="weight-value"' if profit['c2'][1] else ''}><span{' class="bad-value"' if int_cond(profit['c2'][0]) and (profit['c2'][0] < 0) else ''}>{comma(profit['c2'][0])}</span></td>
+                            <td{' class="weight-value"' if profit['c3'][1] else ''}><span{' class="bad-value"' if int_cond(profit['c3'][0]) and (profit['c3'][0] < 0) else ''}>{comma(profit['c3'][0])}</span></td>
+                            <td{' class="weight-value"' if profit['c4'][1] else ''}><span{' class="bad-value"' if int_cond(profit['c4'][0]) and (profit['c4'][0] < 0) else ''}>{comma(profit['c4'][0])}</span></td>
+                        </tr>
+                        <tr>
+                            <th>영업이익률</th>
+                            <td{' class="weight-value"' if profit['c1'][1] else ''}><span{(' class="good-value"' if profit_ratio[0] >= 15 else ' class="bad-value"' if profit_ratio[0] < 5 else '') if type(profit_ratio[0]) in [float, int] else ''}>{comma(profit_ratio[0])}</span></td>
+                            <td{' class="weight-value"' if profit['c2'][1] else ''}><span{(' class="good-value"' if profit_ratio[1] >= 15 else ' class="bad-value"' if profit_ratio[1] < 5 else '') if type(profit_ratio[1]) in [float, int] else ''}>{comma(profit_ratio[1])}</span></td>
+                            <td{' class="weight-value"' if profit['c3'][1] else ''}><span{(' class="good-value"' if profit_ratio[2] >= 15 else ' class="bad-value"' if profit_ratio[2] < 5 else '') if type(profit_ratio[2]) in [float, int] else ''}>{comma(profit_ratio[2])}</span></td>
+                            <td{' class="weight-value"' if profit['c4'][1] else ''}><span{(' class="good-value"' if profit_ratio[3] >= 15 else ' class="bad-value"' if profit_ratio[3] < 5 else '') if type(profit_ratio[3]) in [float, int] else ''}>{comma(profit_ratio[3])}</span></td>
+                        </tr>
+                        <tr>
+                            <th>당기순이익</th>
+                            <td{' class="weight-value"' if real_profit['c1'][1] else ''}><span{' class="bad-value"' if int_cond(real_profit['c1'][0]) and (real_profit['c1'][0] < 0) else ''}>{comma(real_profit['c1'][0])}</span></td>
+                            <td{' class="weight-value"' if real_profit['c2'][1] else ''}><span{' class="bad-value"' if int_cond(real_profit['c2'][0]) and (real_profit['c2'][0] < 0) else ''}>{comma(real_profit['c2'][0])}</span></td>
+                            <td{' class="weight-value"' if real_profit['c3'][1] else ''}><span{' class="bad-value"' if int_cond(real_profit['c3'][0]) and (real_profit['c3'][0] < 0) else ''}>{comma(real_profit['c3'][0])}</span></td>
+                            <td{' class="weight-value"' if real_profit['c4'][1] else ''}><span{' class="bad-value"' if int_cond(real_profit['c4'][0]) and (real_profit['c4'][0] < 0) else ''}>{comma(real_profit['c4'][0])}</span></td>
+                        </tr>
+                        <tr>
+                            <th>당기순이익률</th>
+                            <td{' class="weight-value"' if real_profit['c1'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[0] >= 10 else ' class="bad-value"' if real_profit_ratio[0] < 3 else '') if real_profit_ratio[0] in [float, int] else ''}>{comma(real_profit_ratio[0])}</span></td>
+                            <td{' class="weight-value"' if real_profit['c2'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[1] >= 10 else ' class="bad-value"' if real_profit_ratio[1] < 3 else '') if real_profit_ratio[1] in [float, int] else ''}>{comma(real_profit_ratio[1])}</span></td>
+                            <td{' class="weight-value"' if real_profit['c3'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[2] >= 10 else ' class="bad-value"' if real_profit_ratio[2] < 3 else '') if real_profit_ratio[2] in [float, int] else ''}>{comma(real_profit_ratio[2])}</span></td>
+                            <td{' class="weight-value"' if real_profit['c4'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[3] >= 10 else ' class="bad-value"' if real_profit_ratio[3] < 3 else '') if real_profit_ratio[3] in [float, int] else ''}>{comma(real_profit_ratio[3])}</span></td>
+                        </tr>
+                        <tr>
+                            <th>지배주주지분</th>
+                            <td{' class="weight-value"' if interest['c1'][1] else ''}>{comma(interest['c1'][0])}</td>
+                            <td{' class="weight-value"' if interest['c2'][1] else ''}>{comma(interest['c2'][0])}</td>
+                            <td{' class="weight-value"' if interest['c3'][1] else ''}>{comma(interest['c3'][0])}</td>
+                            <td{' class="weight-value"' if interest['c4'][1] else ''}>{comma(interest['c4'][0])}</td>
+                        </tr>
+                        <tr>
+                            <th>ROE</th>
+                            <td{' class="weight-value"' if roe['c1'][1] else ''}><span{roe_value(roe['c1'][0])}>{comma(roe['c1'][0], 2)}</span></td>
+                            <td{' class="weight-value"' if roe['c2'][1] else ''}><span{roe_value(roe['c2'][0])}>{comma(roe['c2'][0], 2)}</span></td>
+                            <td{' class="weight-value"' if roe['c3'][1] else ''}><span{roe_value(roe['c3'][0])}>{comma(roe['c3'][0], 2)}</span></td>
+                            <td{' class="weight-value"' if roe['c4'][1] else ''}><span{roe_value(roe['c4'][0])}>{comma(roe['c4'][0], 2)}</span></td>
+                        </tr>
+                        <tr>
+                            <th>PER</th>
+                            <td{' class="weight-value"' if per['c1'][1] else ''}><span{per_value(per['c1'][0])}>{comma(per['c1'][0], 2)}</span></td>
+                            <td{' class="weight-value"' if per['c2'][1] else ''}><span{per_value(per['c2'][0])}>{comma(per['c2'][0], 2)}</span></td>
+                            <td{' class="weight-value"' if per['c3'][1] else ''}><span{per_value(per['c3'][0])}>{comma(per['c3'][0], 2)}</span></td>
+                            <td{' class="weight-value"' if per['c4'][1] else ''}><span{per_value(per['c4'][0])}>{comma(per['c4'][0], 2)}</span></td>
+                        </tr>
+                        <tr>
+                            <th>PBR</th>
+                            <td{' class="weight-value"' if pbr['c1'][1] else ''}><span{pbr_value(pbr['c1'][0])}>{comma(pbr['c1'][0], 2)}</span></td>
+                            <td{' class="weight-value"' if pbr['c2'][1] else ''}><span{pbr_value(pbr['c2'][0])}>{comma(pbr['c2'][0], 2)}</span></td>
+                            <td{' class="weight-value"' if pbr['c3'][1] else ''}><span{pbr_value(pbr['c3'][0])}>{comma(pbr['c3'][0], 2)}</span></td>
+                            <td{' class="weight-value"' if pbr['c4'][1] else ''}><span{pbr_value(pbr['c4'][0])}>{comma(pbr['c4'][0], 2)}</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- {txt} END -->
+            <!-- {txt} Chart -->
+            <div class="fs-chard-div">
+                <canvas class="{chart_class}"></canvas>
+                <script>
+                    financeSetChart('.{chart_class}', {table_head}, [
+                        {[v for v, f in sales.values()]},
+                        {profit_ratio},
+                        {real_profit_ratio},
+                    ]);
+                </script>
+            </div>
+            <!-- {txt} Chart END -->
+'''
+
+    return html_fs
+
+# 구분 good / bad 
+def cash_gubun(comb) :
+    if comb in ['+/-/-', '+/-/+'] :
+        return f'<span class="good-value">{comb}</span>'
+    
+    if comb in ['-/+/-', '-/+/+'] :
+        return f'<span class="bad-value">{comb}</span>'
+    
+    return comb
+
+# 적정주가 계산
+def cp_value(vprofit, vper, vcommon) :
+    if vper == None :
+        return {
+            'value': '',
+            'price': '',
+        }
+    else :
+        value = float(int(vprofit)*float(vper))
+        value = round(value)
+        price = (value/vcommon)*100000000
+        price = round(price)
+
+        return {
+            'value': value,
+            'price': price
+        }
+
+
+
+def get_html(gicode) :
+    web_data = get_stock_items(gicode)
+
+    sname = web_data['name'] # 종목이름
+    stxt = ' | '.join(web_data['stxt']) # 종목 정보
+    sdate = web_data['current']['base_date'] # 기준 날짜
+    current_price = web_data['current']['current_price'] # 현재 주가
+    ssummary = web_data['summary'][0] # summary
+    scommon = web_data['common'] # 발행주식수
+    streasury = web_data['treasury'] # 자사주
+    scapa = web_data['market_capacity'] # 시가총액
+
+    sfsy = web_data['year'] # 연간연결재무제표
+    sfsq = web_data['quarter'] # 분기연결재무제표
+
+    srate = web_data['rate'] # 재무비율
+    scash = web_data['cash_table'] # 현금흐름표
+    sdeacha = web_data['daecha_table'] # 재무상태표
+
+    same_pers = web_data['same_per'] # 업종 PER
+
+    bbb = web_data['bbb'] # BBB- 할인율
+
+    # HTML HEAD
+    html_head = '''
+    <link rel="stylesheet/less" type="text/css" href="https://tistory1.daumcdn.net/tistory/6187703/skin/images/analyze.less" />
+    <script src="https://cdn.jsdelivr.net/npm/less"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@latest/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartist-plugin-legend/0.6.2/chartist-plugin-legend.min.js" integrity="sha512-J82gmCXFu+eMIvhK2cCa5dIiKYfjFY4AySzCCjG4EcnglcPQTST/nEtaf5X6egYs9vbbXpttR7W+wY3Uiy37UQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+    // 연간/분기 차트 생성
+    const financeSetChart = (className, labels, datas) => {{
+        const ctx = document.querySelector(className).getContext('2d');
+        const myChart = new Chart(ctx, {{
+            type: 'line',
+            data: {{
+                labels: labels,
+                datasets: [{{
+                    label: '매출액',
+                    data: datas[0],
+                    backgroundColor: 'rgba(16, 163, 127, 0.2)',
+                    borderColor: 'rgba(16, 163, 127, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y1',
+                    type: 'bar'
+                }}, {{
+                    label: '영업이익률',
+                    data: datas[1],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y2',
+                }}, {{
+                    label: '당기순이익률',
+                    data: datas[2],
+                    backgroundColor: 'rgba(0, 0, 128, 0.2)',
+                    borderColor: 'rgba(0, 0, 128, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y2',
+                }}]
+            }},
+            options: {{
+                scales: {{
+                    y1: {{
+                        position: 'left',
+                        ticks: {{
+                            callback: function(value, index, ticks) {{
+                                return `${{value.toLocaleString()}}억원`;
+                            }}
+                        }}
+                    }},
+                    y2: {{
+                        beginAtZero: true,
+                        position: 'right',
+                        grid: {{
+                            drawOnChartArea: false,
+                        }},
+                        ticks: {{
+                            callback: function(value, index, ticks) {{
+                                return `${{value.toLocaleString()}}%`;
+                            }}
+                        }}
+                    }}
+                }}
+            }}
+        }});
+    }}
+    </script>
+    <!-- START -->
+    <!-- Head -->
+    <h1>주식종목 간단 분석:{sname}_{sdate} 기준</h1>
+    <div class="a-line"></div>
+    <!-- Head END -->
+    '''.format(sname=sname, sdate=sdate.split(' ')[0])
+
+    # HTML 종목 기본 정보
+    html_info = f'''
+    <!-- 종목 기본 정보 -->
+    <div class="report-title">기본 정보</div>
+    <div class="standard-info">
+        <div class="info">
+            <div class="info-cell">
+                <div class="cell-head">종목 이름</div>
+                <div class="cell-desc">{sname}</div>
+            </div>
+
+            <div class="info-cell">
+                <div class="cell-head">종목 코드</div>
+                <div class="cell-desc">{gicode}</div>
+            </div>
+
+            <div class="info-cell">
+                <div class="cell-head">현재 주가</div>
+                <div class="cell-desc">{comma(current_price)}원</div>
+            </div>
+
+            <div class="info-cell">
+                <div class="cell-head">기준 날짜</div>
+                <div class="cell-desc">{sdate}</div>
+            </div>
+        </div>
+
+        <div class="info-one">
+            <div class="cell-head">시가 총액</div>
+            <div class="cell-desc">{comma(scapa)}</div>
+        </div>
+
+        <div class="info-one">
+            <div class="cell-head">발행주식수</div>
+            <div class="cell-desc">{comma(scommon)}</div>
+        </div>
+
+        <div class="info-one">
+            <div class="cell-head">자사주</div>
+            <div class="cell-desc">{comma(streasury)}</div>
+        </div>
+
+        <div class="info-summary">
+            <div class="cell-head">개요</div>
+            <div class="cell-desc">
+                <div class="info-industry">{stxt}</div>
+                <div class="info-detail">{ssummary}</div>
+            </div>
+        </div>
+    </div>
+    <!-- 종목 기본 정보 END-->
+    <div class="a-line"></div>
+    '''
+
+    # HTML 재무제표(연간/분기)
+    html_fs_table = f'''
+    {fs_table(sfsy, '연간')}
+    {fs_table(sfsq, '분기')}
+    '''
+
+    # HTML 재무상태표
+    deacha_head = [date for date, value in list(sdeacha.values())[0]]
+    deacha_value = {key:[val[1] for val in value] for key, value in sdeacha.items()}
+
+    # 부채 비율
+    deacha_ratio = [round((deacha_value['부채'][idx]/v)*100, 2) for idx, v in enumerate(deacha_value['자본'])]
+
+    step_size = '0'*len(str(max(deacha_value['자산'])))
+    step_size = int('1' + step_size[1:])
+
+    html_daecha = f'''
+            <!-- 재무상태표 -->
+            <div class="fs-head" style="margin-top: 20px">
+                <div class="fs-title">재무상태표</div>
+                <div class="fs-unit">단위: 억원, %</div>
+            </div>
+            <div class="fs-div">
+                <table class="fs-data">
+                    <thead>
+                        <th>IFRS(연결)</th>
+                        <th>{deacha_head[0]}</th>
+                        <th>{deacha_head[1]}</th>
+                        <th>{deacha_head[2]}</th>
+                        <th>{deacha_head[3]}</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>자산</th>
+                            <td>{comma(deacha_value['자산'][0])}</td>
+                            <td>{comma(deacha_value['자산'][1])}</td>
+                            <td>{comma(deacha_value['자산'][2])}</td>
+                            <td>{comma(deacha_value['자산'][3])}</td>
+                        </tr>
+                        <tr>
+                            <th>부채</th>
+                            <td>{comma(deacha_value['부채'][0])}</td>
+                            <td>{comma(deacha_value['부채'][1])}</td>
+                            <td>{comma(deacha_value['부채'][2])}</td>
+                            <td>{comma(deacha_value['부채'][3])}</td>
+                        </tr>
+                        <tr>
+                            <th>자본</th>
+                            <td>{comma(deacha_value['자본'][0])}</td>
+                            <td>{comma(deacha_value['자본'][1])}</td>
+                            <td>{comma(deacha_value['자본'][2])}</td>
+                            <td>{comma(deacha_value['자본'][3])}</td>
+                        </tr>
+                        <tr>
+                            <th>부채비율</th>
+                            <td><span{' class="good-value"' if deacha_ratio[0] <= 100 else ' class="bad-value"' if deacha_ratio[0] >= 150 else ''}>{comma(deacha_ratio[0])}</span></td>
+                            <td><span{' class="good-value"' if deacha_ratio[1] <= 100 else ' class="bad-value"' if deacha_ratio[1] >= 150 else ''}>{comma(deacha_ratio[1])}</span></td>
+                            <td><span{' class="good-value"' if deacha_ratio[2] <= 100 else ' class="bad-value"' if deacha_ratio[2] >= 150 else ''}>{comma(deacha_ratio[2])}</span></td>
+                            <td><span{' class="good-value"' if deacha_ratio[3] <= 100 else ' class="bad-value"' if deacha_ratio[3] >= 150 else ''}>{comma(deacha_ratio[3])}</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- 재무상태표 END -->
+            <!-- 재무상태표 Chart -->
+            <div class="fs-chard-div">
+                <canvas class="fs-bar-chart"></canvas>
+                <script>
+                    const fsBarChart = document.querySelector('.fs-bar-chart').getContext('2d');
+                    const deptRatio = {deacha_ratio};
+                    const fsBarCanvas = new Chart(fsBarChart, {{
+                        type: 'bar',
+                        data: {{
+                            labels: ['2020/12', '2021/12', '2022/12', '2023/03'],
+                            datasets: [{{
+                                    label: '자본',
+                                    data: {deacha_value['자본']},
+                                    backgroundColor: 'rgba(16, 163, 127, 0.2)',
+                                    borderColor: 'rgba(16, 163, 127, 1)',
+                                    borderWidth: 1,
+                                    stack: 'combined',
+                                    yAxisID: 'y1',
+                                }},
+                                {{
+                                    label: '부채',
+                                    data: {deacha_value['부채']},
+                                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                    borderColor: 'rgba(255, 99, 132, 1)',
+                                    borderWidth: 1,
+                                    stack: 'combined',
+                                    yAxisID: 'y1',
+                                }}, {{
+                                    label: '부채비율',
+                                    data: deptRatio,
+                                    backgroundColor: 'rgba(0, 0, 128, 0.2)',
+                                    borderColor: 'rgba(0, 0, 128, 1)',
+                                    borderWidth: 1,
+                                    type: 'line',
+                                    yAxisID: 'y2',
+                                }}
+                            ]
+                        }},
+                        options: {{
+                            scales: {{
+                                y1: {{
+                                    beginAtZero: true,
+                                    stacked: true,
+                                    position: 'left',
+                                    ticks: {{
+                                        stepSize: {step_size},
+                                        callback: function(value, index, ticks) {{
+                                            return `${{value.toLocaleString()}}억원`;
+                                        }}
+                                    }}
+                                }},
+                                y2: {{
+                                    beginAtZero: true,
+                                    position: 'right',
+                                    grid: {{
+                                        drawOnChartArea: false,
+                                    }},
+                                    ticks: {{
+                                        callback: function(value, index, ticks) {{
+                                            return `${{value.toLocaleString()}}%`;
+                                        }}
+                                    }},
+                                    min: Math.round((Math.min(...deptRatio) / 5) * 5) - 5,
+                                    max: Math.round((Math.max(...deptRatio) / 5) * 5) + 5,
+                                    stepSize: 5
+                                }}
+                            }},
+                        }}
+                    }});
+                </script>
+            </div>
+            <!-- 재무상태표 Chart END -->'''
+
+    # HTML 재무비율
+    rate_head = [date for date, value in list(srate.values())[0]]
+    rate_value = {key:[val[1] for val in value] for key, value in srate.items()}
+
+    html_fs_ratio = f'''
+            <!-- 재무비율 -->
+            <div class="fs-head" style="margin-top: 20px">
+                <div class="fs-title">재무비율</div>
+                <div class="fs-unit">단위: %, 억원</div>
+            </div>
+            <div class="fs-div">
+                <table class="fs-data">
+                    <thead>
+                        <th>IFRS(연결)</th>
+                        <th>{rate_head[0]}</th>
+                        <th>{rate_head[1]}</th>
+                        <th>{rate_head[2]}</th>
+                        <th>{rate_head[3]}</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>유동비율</th>
+                            <td><span{' class="good-value"' if rate_value['유동비율'][0] >= 200 else ' class="bad-value"' if rate_value['유동비율'][0] < 100 else ''}>{comma(rate_value['유동비율'][0])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['유동비율'][1] >= 200 else ' class="bad-value"' if rate_value['유동비율'][1] < 100 else ''}>{comma(rate_value['유동비율'][1])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['유동비율'][2] >= 200 else ' class="bad-value"' if rate_value['유동비율'][2] < 100 else ''}>{comma(rate_value['유동비율'][2])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['유동비율'][3] >= 200 else ' class="bad-value"' if rate_value['유동비율'][3] < 100 else ''}>{comma(rate_value['유동비율'][3])}</span></td>
+                        </tr>
+                        <tr>
+                            <th>당좌비율</th>
+                            <td><span{' class="good-value"' if rate_value['당좌비율'][0] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][0] < 100 else ''}>{comma(rate_value['당좌비율'][0])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['당좌비율'][1] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][1] < 100 else ''}>{comma(rate_value['당좌비율'][1])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['당좌비율'][2] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][2] < 100 else ''}>{comma(rate_value['당좌비율'][2])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['당좌비율'][3] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][3] < 100 else ''}>{comma(rate_value['당좌비율'][3])}</span></td>
+                        </tr>
+                        <tr>
+                            <th>부채비율</th>
+                            <td><span{' class="good-value"' if rate_value['부채비율'][0] < 150 else ' class="bad-value"' if rate_value['부채비율'][0] >= 200 else ''}>{comma(rate_value['부채비율'][0])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['부채비율'][1] < 150 else ' class="bad-value"' if rate_value['부채비율'][1] >= 200 else ''}>{comma(rate_value['부채비율'][1])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['부채비율'][2] < 150 else ' class="bad-value"' if rate_value['부채비율'][2] >= 200 else ''}>{comma(rate_value['부채비율'][2])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['부채비율'][3] < 150 else ' class="bad-value"' if rate_value['부채비율'][3] >= 200 else ''}>{comma(rate_value['부채비율'][3])}</span></td>
+                        </tr>
+                        <tr>
+                            <th>유보율</th>
+                            <td>{comma(rate_value['유보율'][0])}</td>
+                            <td>{comma(rate_value['유보율'][1])}</td>
+                            <td>{comma(rate_value['유보율'][2])}</td>
+                            <td>{comma(rate_value['유보율'][3])}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="fs-comment-text">유보율은 높을수록 좋다.</div>
+            <!-- 재무비율 END -->'''
+    
+    # HTML 현금흐름표
+    cash_head = [date for date, value in list(scash.values())[0]]
+    cash_value = {key:[val[1] for val in value] for key, value in scash.items()}
+
+    # 영업활동
+    sales_act = cash_value['영업활동으로인한현금흐름']
+    # 투자활동
+    invest_act = cash_value['투자활동으로인한현금흐름']
+    # 재무활동
+    finance_act = cash_value['재무활동으로인한현금흐름']
+
+    # 구분 조합
+    sales_pm = ['+' if i > 0 else '-' for i in sales_act]
+    invest_pm = ['+' if i > 0 else '-' for i in invest_act]
+    finance_pm = ['+' if i > 0 else '-' for i in finance_act]
+
+    pms = zip(sales_pm, invest_pm, finance_pm)
+    pms_tx = ['/'.join(i) for i in list(pms)]
+
+    cash_comb_name = {
+        '+/-/-' : '<span class="good-value">우량</span>',
+        '+/-/+' : '<span class="good-value">성장</span>',
+        '+/+/-' : '과도기',
+        '-/-/-' : '재활',
+        '-/-/+' : '재활',
+        '-/+/-' : '<span class="bad-value">위험</span>',
+        '-/+/+' : '<span class="bad-value">접근금지</span>',
+    }
+
+
+    html_cash = f'''
+            <!-- 현금흐름표 -->
+            <div class="fs-head" style="margin-top: 20px">
+                <div class="fs-title">현금흐름표</div>
+                <div class="fs-unit">단위: 억원</div>
+            </div>
+            <div class="fs-div">
+                <table class="fs-data">
+                    <thead>
+                        <th>IFRS(연결)</th>
+                        <th>{cash_head[0]}</th>
+                        <th>{cash_head[1]}</th>
+                        <th>{cash_head[2]}</th>
+                        <th>{cash_head[3]}</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>영업활동</th>
+                            <td><span{' class="minus-value"' if sales_act[0] < 0 else ''}>{comma(sales_act[0])}</span></td>
+                            <td><span{' class="minus-value"' if sales_act[1] < 0 else ''}>{comma(sales_act[1])}</span></td>
+                            <td><span{' class="minus-value"' if sales_act[2] < 0 else ''}>{comma(sales_act[2])}</span></td>
+                            <td><span{' class="minus-value"' if sales_act[3] < 0 else ''}>{comma(sales_act[3])}</span></td>
+                        </tr>
+                        <tr>
+                            <th>투자활동</th>
+                            <td><span{' class="minus-value"' if invest_act[0] < 0 else ''}>{comma(invest_act[0])}</span></td>
+                            <td><span{' class="minus-value"' if invest_act[1] < 0 else ''}>{comma(invest_act[1])}</span></td>
+                            <td><span{' class="minus-value"' if invest_act[2] < 0 else ''}>{comma(invest_act[2])}</span></td>
+                            <td><span{' class="minus-value"' if invest_act[3] < 0 else ''}>{comma(invest_act[3])}</span></td>
+                        </tr>
+                        <tr>
+                            <th>재무활동</th>
+                            <td><span{' class="minus-value"' if finance_act[0] < 0 else ''}>{comma(finance_act[0])}</span></td>
+                            <td><span{' class="minus-value"' if finance_act[1] < 0 else ''}>{comma(finance_act[1])}</span></td>
+                            <td><span{' class="minus-value"' if finance_act[2] < 0 else ''}>{comma(finance_act[2])}</span></td>
+                            <td><span{' class="minus-value"' if finance_act[3] < 0 else ''}>{comma(finance_act[3])}</span></td>
+                        </tr>
+                        <tr>
+                            <th rowspan="2">구분</th>
+                            <td>{cash_gubun(pms_tx[0])}</td>
+                            <td>{cash_gubun(pms_tx[1])}</td>
+                            <td>{cash_gubun(pms_tx[2])}</td>
+                            <td>{cash_gubun(pms_tx[3])}</td>
+                        </tr>
+                        <tr>
+                            <td>{cash_comb_name[pms_tx[0]]}</td>
+                            <td>{cash_comb_name[pms_tx[1]]}</td>
+                            <td>{cash_comb_name[pms_tx[2]]}</td>
+                            <td>{cash_comb_name[pms_tx[3]]}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- 현금흐름표 END -->
+            <div class="a-line"></div>'''
+
+    # 적정주가 PER 기준으로 계산 
+    # 기준 날짜
+    ydate = sfsy['year_chk']['c4']
+
+    # 영업이익
+    yprofit = sfsy['영업이익']['c4']
+    yp_flag = False
+    # 올해 예상치가 없는 경우
+    if yprofit == None :
+        # 가중평균으로 계산
+        yvs = [v for v in sfsy['영업이익'].values() if v != None]
+        yprofit = set_weight_aver(*yvs)
+        yp_flag = True
+
+    # 예상영업이익이 적자라면? 그냥 이건 패스
+    if yprofit < 0 :
+        html_per = f'''
+            <!-- 적정주가 계산 파트 -->
+            <div class="report-title">적정주가 계산</div>
+            <!-- 영업이익*PER 적정 주가 계산 -->
+            <div class="fs-head" style="margin-top: 20px">
+                <div class="fs-title">영업이익*PER</div>
+            </div>
+            <div class="none-data">예상되는 영업이익이 적자이므로 적정주가 계산을 진행하지 않습니다.</div>
+            <!-- 영업이익*PER END -->
+        '''
+    # 필요한 PER
+    # 예상 PER
+    yper = sfsy['PER수정주가']['c4']
+    # Company Guide의 예상 PER / 없으면 가중 PER만
+    # 가중 PER
+    # 최근 3년 가중평균으로 계산
+    ywvp = [v for v in list(sfsy['PER수정주가'].values())[:3] if v != None]
+
+    # 가중 PER
+    ywper = set_weight_aver(*ywvp)
+
+    # 업종 PER (NAVER/CG 따로)
+    nv_per = same_pers['naver']
+    cg_per = same_pers['company']
+
+    # 발행 주식수
+    sc = scommon
+
+    html_per = f'''
+            <!-- 적정주가 계산 파트 -->
+            <div class="report-title">적정주가 계산</div>
+            <!-- 영업이익*PER 적정 주가 계산 -->
+            <div class="fs-head" style="margin-top: 20px">
+                <div class="fs-title">영업이익*PER</div>
+            </div>
+            <div class="standard-info">
+                <div class="info">
+                    <div class="info-cell">
+                        <div class="cell-head">영업이익</div>
+                        <div class="cell-desc{' weight-value' if yp_flag else ''}">{comma(yprofit)}억원</div>
+                    </div>
+
+                    <div class="info-cell">
+                        <div class="cell-head">기준</div>
+                        <div class="cell-desc">{ydate}</div>
+                    </div>
+                </div>
+                <div class="info-one">
+                    <div class="cell-head">현재주가</div>
+                    <div class="cell-desc">{comma(current_price)}원</div>
+                </div>
+                <div class="info-one">
+                    <div class="cell-head">발행주식수</div>
+                    <div class="cell-desc">{comma(sc)}</div>
+                </div>
+            </div>
+            <div class="fs-div" style="margin-top: 10px">
+                <table class="fs-data">
+                    <thead>
+                        <th>구분</th>
+                        <th>PER</th>
+                        <th>기업가치</th>
+                        <th>적정주가</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>올해 예상</th>
+                            <td>{comma(yper)}</td>
+                            <td>{comma(cp_value(yprofit, yper, sc)['value'])}{'억원' if cp_value(yprofit, yper, sc)['value'] != '' else ''}</td>
+                            <td>{comma(cp_value(yprofit, yper, sc)['price'])}{'원' if cp_value(yprofit, yper, sc)['price'] != '' else ''}</td>
+                        </tr>
+                        <tr>
+                            <th>가중 평균</th>
+                            <td>{comma(ywper)}</td>
+                            <td>{comma(cp_value(yprofit, ywper, sc)['value'])}억원</td>
+                            <td>{comma(cp_value(yprofit, ywper, sc)['price'])}원</td>
+                        </tr>
+                        <tr>
+                            <th>업종 PER(NV)</th>
+                            <td>{comma(nv_per)}</td>
+                            <td>{comma(cp_value(yprofit, nv_per, sc)['value'])}억원</td>
+                            <td>{comma(cp_value(yprofit, nv_per, sc)['price'])}원</td>
+                        </tr>
+                        <tr>
+                            <th>업종 PER(CG)</th>
+                            <td>{comma(cg_per)}</td>
+                            <td>{comma(cp_value(yprofit, cg_per, sc)['value'])}억원</td>
+                            <td>{comma(cp_value(yprofit, cg_per, sc)['price'])}원</td>
+                        </tr>
+                        <tr>
+                            <th>별도 조정</th>
+                            <td>
+                                <input class="custom-input per-input" value="10" type="number" min="0" max="100" step="1" />
+                            </td>
+                            <td><span class="custom-value per-fair-value"></span></td>
+                            <td><span class="custom-value per-fair-price"></span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- 영업이익*PER END -->
+            <!-- 영업이익*PER Chart -->
+            <div class="fs-chard-div">
+                <canvas class="fs-per-chart"></canvas>
+                <script>
+                    const perCanvas = document.querySelector('.fs-per-chart').getContext('2d');
+                    const nowValue = {current_price};
+                    let calcPer = 0;
+                    const perChart = new Chart(perCanvas, {{
+                        type: 'line',
+                        data: {{
+                            labels: ['올해 예상', '가중 평균', '업종 PER(NV)', '업종 PER(CG)', '별도 조정'],
+                            datasets: [{{
+                                label: '적정주가',
+                                data: [{'null' if cp_value(yprofit, yper, sc)['price'] == '' else cp_value(yprofit, yper, sc)['price']}, {cp_value(yprofit, ywper, sc)['price']}, {cp_value(yprofit, nv_per, sc)['price']}, {cp_value(yprofit, cg_per, sc)['price']}, calcPer],
+                                backgroundColor: 'rgba(16, 163, 127, 0.2)',
+                                borderColor: 'rgba(16, 163, 127, 1)',
+                                borderWidth: 1,
+                                type: 'bar'
+                            }}]
+                        }},
+                        options: {{
+                            scales: {{
+                                y: {{
+                                    beginAtZero: true,
+                                    position: 'left',
+                                    ticks: {{
+                                        callback: function(value, index, ticks) {{
+                                            return `${{value.toLocaleString()}}원`;
+                                        }}
+                                    }}
+                                }}
+                            }},
+                            plugins: {{
+                                legend: {{
+                                    onClick: (e) => e.stopPropagation()
+                                }},
+                                annotation: {{
+                                    annotations: {{
+                                        currentValue: {{
+                                            type: 'line',
+                                            mode: 'horizontal',
+                                            scaleID: 'y',
+                                            value: nowValue,
+                                            borderColor: 'rgba(255, 127, 80, 1)',
+                                            borderWidth: 1.5,
+                                            label: {{
+                                                content: '현재 주가',
+                                                enabled: true,
+                                                position: 'top',
+                                            }}
+                                        }},
+                                        label1: {{
+                                            type: 'label',
+                                            yValue: nowValue,
+                                            content: ['현재 주가', `${{nowValue.toLocaleString()}}원`],
+                                            color: 'rgba(255, 127, 80, 1)',
+                                            font: {{
+                                                size: 13,
+                                            }}
+                                        }}
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }});
+
+                    const perInput = document.querySelector('.per-input');
+                    const perHandler = (perValue) => {{
+                        const fairValue = document.querySelector('.per-fair-value');
+                        const fairPrice = document.querySelector('.per-fair-price');
+
+                        if (parseInt(perValue) > 100) {{
+                            perValue = 100;
+                        }}
+
+                        const earning = {yprofit}; // 영업이익
+                        const stockCnt = {sc}; // 발행주식수
+                        const per = parseFloat(perValue);
+
+                        // 기업가치
+                        let calcEarning = earning * per;
+                        let calcPrice = (calcEarning / stockCnt) * 100000000;
+
+                        calcEarning = calcEarning.toFixed(1);
+                        calcPrice = calcPrice.toFixed(0);
+
+                        if (isNaN(calcEarning)) {{
+                            fairValue.innerHTML = '';
+                            fairPrice.innerHTML = '';
+                            calcPrice = 0;
+                        }} else {{
+                            fairValue.innerHTML = `${{parseFloat(calcEarning).toLocaleString()}}억원`;
+                            fairPrice.innerHTML = `${{parseInt(calcPrice).toLocaleString()}}원`;
+                        }}
+
+                        calcPer = calcPrice;
+                        perChart.data.datasets[0].data[4] = calcPer;
+
+                        perChart.update();
+                    }};
+
+                    perInput.addEventListener('input', (event) => {{
+                        perHandler(event.target.value);
+                    }});
+                    perHandler(10);
+                </script>
+            </div>
+            <!-- 영업이익*PER Chart END -->'''
+
+    # HTML SRIM
+    srim = SRIM(gicode)
+
+    # 지배주주지분
+    srim_jibun = srim['지배주주지분']
+    srim_result = srim['srim']
+    # 예상 ROE
+    e_roe = srim_result['ce']['roe'] if 'ce' in srim_result else None
+    e_value = srim_result['ce']['w'] if 'ce' in srim_result else None
+    e_price = [val['sprice'] for val in e_value.values()] if e_value != None else None
+
+    # 가중 ROE
+    w_roe = srim_result['we']['roe']
+    w_value = srim_result['we']['w']
+    w_price = [val['sprice'] for val in w_value.values()] if w_value != None else None
+
+    html_srim = f'''
+            <!-- SRIM 계산 -->
+            <div class="fs-head" style="margin-top: 20px">
+                <div class="fs-title">SRIM</div>
+            </div>
+            <div class="standard-info">
+                <div class="info-one">
+                    <div class="cell-head">발행주식수</div>
+                    <div class="cell-desc">{comma(scommon)}</div>
+                </div>
+                <div class="info-one">
+                    <div class="cell-head">자사주</div>
+                    <div class="cell-desc">{comma(streasury)}</div>
+                </div>
+
+                <div class="info" style="margin-top: 15px;">
+                    <div class="info-cell">
+                        <div class="cell-head">지배주주지분</div>
+                        <div class="cell-desc">{comma(srim_jibun)}</div>
+                    </div>
+
+                    <div class="info-cell">
+                        <div class="cell-head">BBB-</div>
+                        <div class="cell-desc">{bbb}%</div>
+                    </div>
+                    <div class="info-one">
+                        <div class="cell-head">예상 ROE</div>
+                        <div class="cell-desc">{comma(e_roe) if e_roe != None else ''}</div>
+                    </div>
+                    <div class="info-one">
+                        <div class="cell-head">가중 ROE</div>
+                        <div class="cell-desc">{comma(w_roe)}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="srim-page">
+                <div class="srim-roe-head">
+                    <div class="srim-roe {'roe-selected' if e_roe != None else 'fs-hidden'}">예상 ROE</div>
+                    <div class="srim-roe {'roe-selected' if e_roe == None else ''}">가중 ROE</div>
+                    <div class="srim-roe-info">기준 ROE 선택</div>
+                </div>
+                <div class="fs-div srim-result" style="margin-top: 10px">
+                    <table class="fs-data srim-table{' post-fs-hidden' if e_value == None else ''}">
+                        <thead>
+                            <th>초과이익</th>
+                            <th>기업가치</th>
+                            <th>적정주가</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>이익 지속</th>
+                                <td>{'%s억'%(comma(e_value['w1']['svalue'])) if e_roe != None else ''}</td>
+                                <td>{'%s원'%(comma(e_value['w1']['sprice'])) if e_roe != None else ''}</td>
+                            </tr>
+                            <tr>
+                                <th>10% 감소</th>
+                                <td>{'%s억'%(comma(e_value['w2']['svalue'])) if e_roe != None else ''}</td>
+                                <td>{'%s원'%(comma(e_value['w2']['sprice'])) if e_roe != None else ''}</td>
+                            </tr>
+                            <tr>
+                                <th>20% 감소</th>
+                                <td>{'%s억'%(comma(e_value['w3']['svalue'])) if e_roe != None else ''}</td>
+                                <td>{'%s원'%(comma(e_value['w3']['sprice'])) if e_roe != None else ''}</td>
+                            </tr>
+                            <tr>
+                                <th>30% 감소</th>
+                                <td>{'%s억'%(comma(e_value['w4']['svalue'])) if e_roe != None else ''}</td>
+                                <td>{'%s원'%(comma(e_value['w4']['sprice'])) if e_roe != None else ''}</td>
+                            </tr>
+                            <tr>
+                                <th>40% 감소</th>
+                                <td>{'%s억'%(comma(e_value['w5']['svalue'])) if e_roe != None else ''}</td>
+                                <td>{'%s원'%(comma(e_value['w5']['sprice'])) if e_roe != None else ''}</td>
+                            </tr>
+                            <tr>
+                                <th>50% 감소</th>
+                                <td>{'%s억'%(comma(e_value['w6']['svalue'])) if e_roe != None else ''}</td>
+                                <td>{'%s원'%(comma(e_value['w6']['sprice'])) if e_roe != None else ''}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="fs-data srim-table{' post-fs-hidden' if e_value != None else ''}">
+                        <thead>
+                            <th>초과이익</th>
+                            <th>기업가치</th>
+                            <th>적정주가</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>이익 지속</th>
+                                <td>{'%s억'%(comma(w_value['w1']['svalue']))}</td>
+                                <td>{'%s원'%(comma(w_value['w1']['sprice']))}</td>
+                            </tr>
+                            <tr>
+                                <th>10% 감소</th>
+                                <td>{'%s억'%(comma(w_value['w2']['svalue']))}</td>
+                                <td>{'%s원'%(comma(w_value['w2']['sprice']))}</td>
+                            </tr>
+                            <tr>
+                                <th>20% 감소</th>
+                                <td>{'%s억'%(comma(w_value['w3']['svalue']))}</td>
+                                <td>{'%s원'%(comma(w_value['w3']['sprice']))}</td>
+                            </tr>
+                            <tr>
+                                <th>30% 감소</th>
+                                <td>{'%s억'%(comma(w_value['w4']['svalue']))}</td>
+                                <td>{'%s원'%(comma(w_value['w4']['sprice']))}</td>
+                            </tr>
+                            <tr>
+                                <th>40% 감소</th>
+                                <td>{'%s억'%(comma(w_value['w5']['svalue']))}</td>
+                                <td>{'%s원'%(comma(w_value['w5']['sprice']))}</td>
+                            </tr>
+                            <tr>
+                                <th>50% 감소</th>
+                                <td>{'%s억'%(comma(w_value['w6']['svalue']))}</td>
+                                <td>{'%s원'%(comma(w_value['w6']['sprice']))}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- SRIM END -->
+            <!-- SRIM Chart -->
+            <div class="fs-chard-div">
+                <canvas class="fs-srim-chart"></canvas>
+            </div>
+            <script>
+            // SRIM CHART
+            const srimCanvas = document.querySelector('.fs-srim-chart').getContext('2d');
+            const srimResults = [
+                {e_price if e_price != None else []},
+                {w_price if w_price != None else []}
+            ];
+            const srimNowValue = {current_price};
+            let setSRIM = srimResults[{0 if e_value != None else 1}];
+            const srimChart = new Chart(srimCanvas, {{
+                type: 'line',
+                data: {{
+                    labels: ['이익 지속', '10% 감소', '20% 감소', '30% 감소', '40% 감소', '50% 감소'],
+                    datasets: [{{
+                        label: '적정주가',
+                        data: setSRIM,
+                        backgroundColor: 'rgba(16, 163, 127, 0.2)',
+                        borderColor: 'rgba(16, 163, 127, 1)',
+                        borderWidth: 1,
+                        type: 'bar'
+                    }}]
+                }},
+                options: {{
+                    scales: {{
+                        y: {{
+                            beginAtZero: true,
+                            position: 'left',
+                            ticks: {{
+                                callback: function(value, index, ticks) {{
+                                    return `${{value.toLocaleString()}}원`;
+                                }}
+                            }}
+                        }}
+                    }},
+                    plugins: {{
+                        legend: {{
+                            onClick: (e) => e.stopPropagation()
+                        }},
+                        annotation: {{
+                            annotations: {{
+                                currentValue: {{
+                                    type: 'line',
+                                    mode: 'horizontal',
+                                    scaleID: 'y',
+                                    value: srimNowValue,
+                                    borderColor: 'rgba(255, 127, 80, 1)',
+                                    borderWidth: 1.5,
+                                    label: {{
+                                        content: '현재 주가',
+                                        enabled: true,
+                                        position: 'top',
+                                    }}
+                                }},
+                                label1: {{
+                                    type: 'label',
+                                    yValue: srimNowValue,
+                                    content: ['현재 주가', `${{srimNowValue.toLocaleString()}}원`],
+                                    color: 'rgba(255, 127, 80, 1)',
+                                    font: {{
+                                        size: 13,
+                                    }}
+                                }}
+                            }}
+                        }}
+                    }}
+                }}
+            }});
+            // ROE 선택 기능
+            const roeBtn = document.querySelectorAll('.srim-roe');
+            const roeSelected = 'roe-selected';
+            const roeHandler = (index) => {{
+                const roeHead = document.querySelector('.srim-roe-head');
+                const selectedRoe = roeHead.querySelector(`.${{roeSelected}}`);
+                const roeTables = document.querySelectorAll('.srim-table');
+                selectedRoe.classList.remove(roeSelected);
+
+                roeBtn[index].classList.add(roeSelected);
+                roeTables.forEach((table) => {{
+                    table.classList.add('post-fs-hidden');
+                }});
+                roeTables[index].classList.remove('post-fs-hidden');
+
+                // Chart update
+                setSRIM = srimResults[index];
+                srimChart.data.datasets[0].data = setSRIM;
+
+                srimChart.update();
+            }};
+
+            roeBtn.forEach((roe, index) => {{
+                roe.addEventListener('click', () => {{
+                    roeHandler(index);
+                }});
+            }});
+        </script>
+        <!-- SRIM Chart END -->
+        <div class="a-line"></div>'''
+    # HTML Body (END)
+    html_fs_body = f'''
+    {html_head}
+    {html_info}
+    <div class="report-title">재무정보</div>
+    <div class="financial-statements">
+        <div class="fs-table">
+    {html_fs_table}
+    {html_daecha}
+    {html_fs_ratio}
+    {html_cash}
+    {html_per}
+    {html_srim}
+        </div>
+    </div>
+    <!-- END -->
+    '''
+    file_date = sdate.split(' ')[0]
+    file_date = file_date.replace('/', '')
+    with open(f'{gicode}_{sname}_{file_date}.html', 'w') as f :
+        f.write(html_fs_body)
