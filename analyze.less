@@ -7,6 +7,10 @@
 @break-point: 600px;
 @mobile: ~"(max-width: 724px)";
 
+* {
+    word-break: keep-all !important;
+}  
+
 .box-shadow-style() {
   box-shadow: 0 4px 6px -1px @box-shadow-color, 0 2px 4px -2px @box-shadow-color;
 }
@@ -37,7 +41,7 @@
 
 .report-title {
     margin-bottom: 10px;
-    font-size: 1.1rem;
+    font-size: 1.1rem !important;
     font-weight: bold;
     
     &:before {
@@ -49,7 +53,7 @@
 .standard-info {
     width: 100%;
     .max-width-set();
-    font-size: 0.9rem;
+    font-size: 0.9rem !important;
 
     .cell-head {
         text-align: center;
@@ -62,10 +66,10 @@
     .info-one {
         display: grid;
         grid-template-columns: 130px 470px;
-        margin-top: 10px;
         .border-gray();
         border-radius: 10px;
         overflow: hidden;
+        margin-bottom: 10px;
     }
 
     .cell-desc {
@@ -75,8 +79,9 @@
     .info {
         display: grid;
         grid-template-columns: 300px 300px;
-        row-gap: 5px;
+        row-gap: 10px;
         column-gap: 2px;
+        margin-bottom: 10px;
 
         .info-cell {
             .border-gray();
@@ -108,7 +113,7 @@
 }
 
 .financial-statements {
-    font-size: 0.9rem;
+    font-size: 0.9rem !important;
 
     .fs-table {
         .fs-head {
@@ -128,7 +133,7 @@
 
             .fs-unit {
                 padding-right: 0.6rem;
-                font-size: 0.7rem;
+                font-size: 0.7rem !important;
                 color: @basic-color;
             }
         }
@@ -142,7 +147,7 @@
 
         .fs-data {
             width: 100%;
-            font-size: 0.8rem;
+            font-size: 0.8rem !important;
             .max-width-set();
             margin-top: 0 !important;
             margin-bottom: 0 !important;
@@ -250,7 +255,7 @@
         }
 
         .srim-roe-info {
-            font-size: 0.7rem;
+            font-size: 0.7rem !important;
             color: rgb(240, 77, 77);
             padding-bottom: 5px;
         }
@@ -272,31 +277,6 @@
         // transition: opacity 0.5s;
     }
 }
-
-@media @mobile {
-    .standard-info {
-        .info-one {
-            grid-template-columns: 130px 170px;
-        }
-    
-        .info {
-            grid-template-columns: 100%;
-
-            .info-cell {
-                grid-template-columns: 130px 170px;
-            }
-        }
-    }    
-
-    .fs-data {
-        font-size: 0.7rem !important;
-    }
-
-    .srim-result {
-        min-height: 200px;
-    }
-}
-
 
 .good-value {
     color: @good-color;
@@ -320,7 +300,7 @@
 }
 
 .fs-comment-text {
-    font-size: 0.7rem;
+    font-size: 0.7rem !important;
     padding-left: 0.5rem;
     color: @good-color;
 }
@@ -363,7 +343,7 @@
         padding: 10px;
         border-radius: 10px;
         background-color: fade(@basic-color, 20%);
-        font-size: 0.8rem;
+        font-size: 0.8rem !important;
         transition: background-color 0.5s, color 0.5s;
         .box-shadow-style();
 
@@ -383,7 +363,7 @@
 
     .fs-ai-head {
         font-weight: bold;
-        font-size: 1rem;
+        font-size: 1rem !important;
         margin-bottom: 10px;
         &:before {
             content: '· ';
@@ -391,19 +371,65 @@
     }
 
     .fs-ai-desc {
-        font-size: 0.8rem;
+        font-size: 0.8rem !important;
         padding-left: 10px;
     }
 }
 
 .fs-ai-summary {
     max-width: 580px;
-    width: 100%;
     font-weight: bold;
     border: 2px solid fade(@basic-color, 50%);
     border-radius: 10px;
     padding: 10px;
-    font-size: 0.8rem;
+    font-size: 0.8rem !important;
     .box-shadow-style();
 }
 
+.before-start {
+    font-size: 0.8rem !important;
+
+    ul {
+        margin-bottom: 0 !important;
+    }
+}
+
+@media @mobile {
+    .standard-info {
+        .info-one {
+            grid-template-columns: 130px 170px;
+        }
+        .cell-head {
+            font-size: 0.8rem !important;
+        }
+        .info {
+            grid-template-columns: 100%;
+
+            .info-cell {
+                grid-template-columns: 130px 170px;
+            }
+        }
+    }    
+
+    .fs-data {
+        font-size: 0.7rem !important;
+    }
+
+    .financial-statements {
+        font-size: 0.9rem !important;
+    
+        .fs-table {
+            .fs-data {
+                td {
+                    font-size: 0.6rem !important;;
+                }
+                th {
+                    font-size: 0.6rem !important;
+                    &:first-child {
+                        width: 72px;
+                    }
+                }
+            }
+        }
+    }
+}

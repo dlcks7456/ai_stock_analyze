@@ -993,7 +993,7 @@ def get_html(gicode) :
     <div class="a-line"></div>
     <!-- Head END -->
     <!-- 안내사항 -->
-    <div style="font-size: 0.8rem;">
+    <div class="before-start">
         <ul>
             <li>Company Guide/Naver 증권에서 <b>웹스크래핑한 데이터</b>입니다.</li>
             <li>모바일에서도 확인은 가능하지만 PC가 더 편리할 수 있습니다.</li>
@@ -1342,7 +1342,24 @@ def get_html(gicode) :
                 </table>
             </div>
             <!-- 현금흐름표 END -->
-            <div class="a-line"></div>'''
+            <div class="a-line"></div>
+            <br/>
+            <div style="max-width: 600px;margin-bottom: 30px;">
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5461323615661647"
+                crossorigin="anonymous"></script>
+            <!-- POSTAD -->
+            <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-client="ca-pub-5461323615661647"
+                data-ad-slot="3674534741"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({{}});
+            </script>
+            </div>
+            <br/>
+            '''
 
     # 적정주가 PER 기준으로 계산 
     # 기준 날짜
@@ -1401,8 +1418,17 @@ def get_html(gicode) :
             <!-- 적정주가 계산 파트 -->
             <div class="report-title">적정주가 계산</div>
             <!-- 영업이익*PER 적정 주가 계산 -->
-            <div class="fs-head" style="margin-top: 20px">
-                <div class="fs-title">영업이익*PER</div>
+            <div class="fs-head fs-with-q" style="margin-top: 20px;margin-bottom: 10px">
+                <div class="fs-with-q">
+                    <div class="fs-title">영업이익*PER</div>
+                    <div>
+                        <a href="https://waymond.tistory.com/40" target="_blank" title="적정주가 간단하게 계산해보기">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                        </svg>                  
+                        </a>
+                    </div>
+                </div>
             </div>
             <div class="standard-info">
                 <div class="info">
@@ -1447,13 +1473,13 @@ def get_html(gicode) :
                             <td>{comma(cp_value(yprofit, ywper, sc)['price'])}원</td>
                         </tr>
                         <tr>
-                            <th>업종 PER(NV)</th>
+                            <th>업종 (NV)</th>
                             <td>{comma(nv_per)}</td>
                             <td>{comma(cp_value(yprofit, nv_per, sc)['value'])}억원</td>
                             <td>{comma(cp_value(yprofit, nv_per, sc)['price'])}원</td>
                         </tr>
                         <tr>
-                            <th>업종 PER(CG)</th>
+                            <th>업종 (CG)</th>
                             <td>{comma(cg_per)}</td>
                             <td>{comma(cp_value(yprofit, cg_per, sc)['value'])}억원</td>
                             <td>{comma(cp_value(yprofit, cg_per, sc)['price'])}원</td>
@@ -1471,8 +1497,8 @@ def get_html(gicode) :
                 
             </div>
             <div class="fs-comment-text">
-                <div>NV=NAVER 증권 기준</div>
-                <div>CG=Company Guide 기준</div>
+                <div>NV=NAVER 증권 기준 동일 업종 PER</div>
+                <div>CG=Company Guide 기준 동일 업종 PER</div>
             </div>
             <!-- 영업이익*PER END -->
             <!-- 영업이익*PER Chart -->
@@ -1624,7 +1650,7 @@ def get_html(gicode) :
                     <div class="cell-desc">{comma(streasury)}</div>
                 </div>
 
-                <div class="info" style="margin-top: 15px;">
+                <div class="info">
                     <div class="info-cell">
                         <div class="cell-head">지배주주지분</div>
                         <div class="cell-desc">{comma(srim_jibun)}</div>
@@ -1634,11 +1660,11 @@ def get_html(gicode) :
                         <div class="cell-head">BBB-</div>
                         <div class="cell-desc">{bbb}%</div>
                     </div>
-                    <div class="info-one">
+                    <div class="info-cell">
                         <div class="cell-head">예상 ROE</div>
                         <div class="cell-desc">{comma(e_roe) if e_roe != None else ''}</div>
                     </div>
-                    <div class="info-one">
+                    <div class="info-cell">
                         <div class="cell-head">가중 ROE</div>
                         <div class="cell-desc">{comma(w_roe)}</div>
                     </div>
@@ -1858,12 +1884,14 @@ def get_html(gicode) :
     </div>
     <!-- AI 분석 END -->
     '''
-    file_date = sdate.split(' ')[0]
+    re_date = sdate.split(' ')[0]
+    file_date = re_date
     file_date = file_date.replace('/', '')
     file_name = f'{gicode}_{sname}_{file_date}.html'
     with open(file_name, 'w') as f :
         f.write(html_fs_body)
     print(f'{file_name} file has been created.')
+    print(f'{sname}:주식 재무 분석 & 적정주가 계산_{re_date}')
     return file_name
 
 
