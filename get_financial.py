@@ -1850,11 +1850,21 @@ def get_html(gicode) :
         </div>
     </div>
     <!-- END -->
+    <!-- AI 분석 -->
+    <div class="report-title">요약 (From. AI)</div>
+    <!-- 여기에 ChatGPT 내용 삽입 -->
+    <div class="fs-ai-summary">
+    <!-- 여기에 ChatGPT 종합 정리 삽입-->
+    </div>
+    <!-- AI 분석 END -->
     '''
     file_date = sdate.split(' ')[0]
     file_date = file_date.replace('/', '')
-    with open(f'{gicode}_{sname}_{file_date}.html', 'w') as f :
+    file_name = f'{gicode}_{sname}_{file_date}.html'
+    with open(file_name, 'w') as f :
         f.write(html_fs_body)
+    print(f'{file_name} file has been created.')
+    return file_name
 
 
 
@@ -1890,18 +1900,27 @@ def for_chatgpt(gicode) :
     # 재무상태표
     ftable = fs['daecha_table']
     col_name = [date for date, value in ftable['자산']]
-    row_date = {key: [v for d, v in values] for key, values in ftable.items()}
-    row_date['year_chk'] = col_name
-    financial_statements = pd.DataFrame(row_date)
+    row_data = {key: [v for d, v in values] for key, values in ftable.items()}
+    row_data['year_chk'] = col_name
+    financial_statements = pd.DataFrame(row_data)
     financial_statements.set_index('year_chk', inplace=True)
     financial_statements['부채비율'] = (financial_statements['부채']/financial_statements['자본'])*100
     
+    # 재무비율
+    ftable = fs['rate']
+    col_name = [date for date, value in ftable['유보율']]
+    row_data = {key: [v for d, v in values] for key, values in ftable.items()}
+    row_data['year_chk'] = col_name
+    financial_ratio = pd.DataFrame(row_data)
+    financial_ratio.set_index('year_chk', inplace=True)
+    
+
     # 현금흐름표
     cash_table = fs['cash_table']
     col_name = [date for date, value in cash_table['영업활동으로인한현금흐름']]
-    row_date = {key: [v for d, v in values] for key, values in cash_table.items()}
-    row_date['year_chk'] = col_name
-    statement_of_cash_flows = pd.DataFrame(row_date)
+    row_data = {key: [v for d, v in values] for key, values in cash_table.items()}
+    row_data['year_chk'] = col_name
+    statement_of_cash_flows = pd.DataFrame(row_data)
     statement_of_cash_flows.set_index('year_chk', inplace=True)
     
 
@@ -1993,6 +2012,7 @@ def for_chatgpt(gicode) :
         '연간재무제표': annual_financial_statements,
         '분기재무제표': quarterly_financial_statements,
         '재무상태표': financial_statements,
+        '재무비율': financial_ratio,
         '현금흐름표': statement_of_cash_flows,
         'PER_적정주가_계산_결과': calc_fair_value_use_per,
         'SRIM_적정주가_계산_결과': SRIM_analysis_results
