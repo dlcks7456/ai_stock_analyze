@@ -995,7 +995,7 @@ def get_html(gicode) :
     <!-- 안내사항 -->
     <div class="before-start">
         <ul>
-            <li>Company Guide/Naver 증권에서 <b>웹스크래핑한 데이터</b>입니다.</li>
+            <li>Company Guide/NAVER 증권에서 <b>웹스크래핑한 데이터</b>입니다.</li>
             <li>모바일에서도 확인은 가능하지만 PC가 더 편리할 수 있습니다.</li>
             <li>이 포스트는 <b>{sdate} 기준</b>입니다. <b>재무 데이터는 이후 변경될 수 있습니다.</b></li>
             <li><b>긍정적인 수치</b>는 <span class="good-value"><b>초록색 폰트</b></span>로 표시됩니다.</li>
@@ -1120,18 +1120,75 @@ def get_html(gicode) :
                             <td>{comma(deacha_value['자본'][2])}</td>
                             <td>{comma(deacha_value['자본'][3])}</td>
                         </tr>
+                        <!--
                         <tr>
                             <th>부채비율</th>
-                            <td><span{' class="good-value"' if deacha_ratio[0] <= 100 else ' class="bad-value"' if deacha_ratio[0] >= 150 else ''}>{comma(deacha_ratio[0])}</span></td>
-                            <td><span{' class="good-value"' if deacha_ratio[1] <= 100 else ' class="bad-value"' if deacha_ratio[1] >= 150 else ''}>{comma(deacha_ratio[1])}</span></td>
-                            <td><span{' class="good-value"' if deacha_ratio[2] <= 100 else ' class="bad-value"' if deacha_ratio[2] >= 150 else ''}>{comma(deacha_ratio[2])}</span></td>
-                            <td><span{' class="good-value"' if deacha_ratio[3] <= 100 else ' class="bad-value"' if deacha_ratio[3] >= 150 else ''}>{comma(deacha_ratio[3])}</span></td>
+                            <td><span{' class="good-value"' if deacha_ratio[0] <= 150 else ' class="bad-value"' if deacha_ratio[0] >= 200 else ''}>{comma(deacha_ratio[0])}</span></td>
+                            <td><span{' class="good-value"' if deacha_ratio[1] <= 150 else ' class="bad-value"' if deacha_ratio[1] >= 200 else ''}>{comma(deacha_ratio[1])}</span></td>
+                            <td><span{' class="good-value"' if deacha_ratio[2] <= 150 else ' class="bad-value"' if deacha_ratio[2] >= 200 else ''}>{comma(deacha_ratio[2])}</span></td>
+                            <td><span{' class="good-value"' if deacha_ratio[3] <= 150 else ' class="bad-value"' if deacha_ratio[3] >= 200 else ''}>{comma(deacha_ratio[3])}</span></td>
                         </tr>
+                        -->
                     </tbody>
                 </table>
             </div>
             <!-- 재무상태표 END -->
-            <!-- 재무상태표 Chart -->
+'''
+
+    # HTML 재무비율
+    rate_head = [date for date, value in list(srate.values())[0]]
+    rate_value = {key:[val[1] for val in value] for key, value in srate.items()}
+
+    html_fs_ratio = f'''
+            <!-- 재무비율 -->
+            <div class="fs-head" style="margin-top: 20px">
+                <div class="fs-title">재무비율</div>
+                <div class="fs-unit">단위: %, 억원</div>
+            </div>
+            <div class="fs-div">
+                <table class="fs-data">
+                    <thead>
+                        <th>IFRS(연결)</th>
+                        <th>{rate_head[0]}</th>
+                        <th>{rate_head[1]}</th>
+                        <th>{rate_head[2]}</th>
+                        <th>{rate_head[3]}</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>유동비율</th>
+                            <td><span{' class="good-value"' if rate_value['유동비율'][0] >= 200 else ' class="bad-value"' if rate_value['유동비율'][0] < 100 else ''}>{comma(rate_value['유동비율'][0])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['유동비율'][1] >= 200 else ' class="bad-value"' if rate_value['유동비율'][1] < 100 else ''}>{comma(rate_value['유동비율'][1])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['유동비율'][2] >= 200 else ' class="bad-value"' if rate_value['유동비율'][2] < 100 else ''}>{comma(rate_value['유동비율'][2])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['유동비율'][3] >= 200 else ' class="bad-value"' if rate_value['유동비율'][3] < 100 else ''}>{comma(rate_value['유동비율'][3])}</span></td>
+                        </tr>
+                        <tr>
+                            <th>당좌비율</th>
+                            <td><span{' class="good-value"' if rate_value['당좌비율'][0] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][0] < 100 else ''}>{comma(rate_value['당좌비율'][0])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['당좌비율'][1] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][1] < 100 else ''}>{comma(rate_value['당좌비율'][1])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['당좌비율'][2] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][2] < 100 else ''}>{comma(rate_value['당좌비율'][2])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['당좌비율'][3] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][3] < 100 else ''}>{comma(rate_value['당좌비율'][3])}</span></td>
+                        </tr>
+                        <tr>
+                            <th>부채비율</th>
+                            <td><span{' class="good-value"' if rate_value['부채비율'][0] <= 150 else ' class="bad-value"' if rate_value['부채비율'][0] >= 200 else ''}>{comma(rate_value['부채비율'][0])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['부채비율'][1] <= 150 else ' class="bad-value"' if rate_value['부채비율'][1] >= 200 else ''}>{comma(rate_value['부채비율'][1])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['부채비율'][2] <= 150 else ' class="bad-value"' if rate_value['부채비율'][2] >= 200 else ''}>{comma(rate_value['부채비율'][2])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['부채비율'][3] <= 150 else ' class="bad-value"' if rate_value['부채비율'][3] >= 200 else ''}>{comma(rate_value['부채비율'][3])}</span></td>
+                        </tr>
+                        <tr>
+                            <th>유보율</th>
+                            <td>{comma(rate_value['유보율'][0])}</td>
+                            <td>{comma(rate_value['유보율'][1])}</td>
+                            <td>{comma(rate_value['유보율'][2])}</td>
+                            <td>{comma(rate_value['유보율'][3])}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="fs-comment-text">유보율은 높을수록 좋다.</div>
+            <!-- 재무비율 END -->
+            <!-- 재무상태표/재무비율 Chart -->
             <div class="fs-chard-div">
                 <canvas class="fs-bar-chart"></canvas>
                 <script>
@@ -1202,61 +1259,7 @@ def get_html(gicode) :
                     }});
                 </script>
             </div>
-            <!-- 재무상태표 Chart END -->'''
-
-    # HTML 재무비율
-    rate_head = [date for date, value in list(srate.values())[0]]
-    rate_value = {key:[val[1] for val in value] for key, value in srate.items()}
-
-    html_fs_ratio = f'''
-            <!-- 재무비율 -->
-            <div class="fs-head" style="margin-top: 20px">
-                <div class="fs-title">재무비율</div>
-                <div class="fs-unit">단위: %, 억원</div>
-            </div>
-            <div class="fs-div">
-                <table class="fs-data">
-                    <thead>
-                        <th>IFRS(연결)</th>
-                        <th>{rate_head[0]}</th>
-                        <th>{rate_head[1]}</th>
-                        <th>{rate_head[2]}</th>
-                        <th>{rate_head[3]}</th>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <th>유동비율</th>
-                            <td><span{' class="good-value"' if rate_value['유동비율'][0] >= 200 else ' class="bad-value"' if rate_value['유동비율'][0] < 100 else ''}>{comma(rate_value['유동비율'][0])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['유동비율'][1] >= 200 else ' class="bad-value"' if rate_value['유동비율'][1] < 100 else ''}>{comma(rate_value['유동비율'][1])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['유동비율'][2] >= 200 else ' class="bad-value"' if rate_value['유동비율'][2] < 100 else ''}>{comma(rate_value['유동비율'][2])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['유동비율'][3] >= 200 else ' class="bad-value"' if rate_value['유동비율'][3] < 100 else ''}>{comma(rate_value['유동비율'][3])}</span></td>
-                        </tr>
-                        <tr>
-                            <th>당좌비율</th>
-                            <td><span{' class="good-value"' if rate_value['당좌비율'][0] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][0] < 100 else ''}>{comma(rate_value['당좌비율'][0])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['당좌비율'][1] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][1] < 100 else ''}>{comma(rate_value['당좌비율'][1])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['당좌비율'][2] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][2] < 100 else ''}>{comma(rate_value['당좌비율'][2])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['당좌비율'][3] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][3] < 100 else ''}>{comma(rate_value['당좌비율'][3])}</span></td>
-                        </tr>
-                        <tr>
-                            <th>부채비율</th>
-                            <td><span{' class="good-value"' if rate_value['부채비율'][0] < 150 else ' class="bad-value"' if rate_value['부채비율'][0] >= 200 else ''}>{comma(rate_value['부채비율'][0])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['부채비율'][1] < 150 else ' class="bad-value"' if rate_value['부채비율'][1] >= 200 else ''}>{comma(rate_value['부채비율'][1])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['부채비율'][2] < 150 else ' class="bad-value"' if rate_value['부채비율'][2] >= 200 else ''}>{comma(rate_value['부채비율'][2])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['부채비율'][3] < 150 else ' class="bad-value"' if rate_value['부채비율'][3] >= 200 else ''}>{comma(rate_value['부채비율'][3])}</span></td>
-                        </tr>
-                        <tr>
-                            <th>유보율</th>
-                            <td>{comma(rate_value['유보율'][0])}</td>
-                            <td>{comma(rate_value['유보율'][1])}</td>
-                            <td>{comma(rate_value['유보율'][2])}</td>
-                            <td>{comma(rate_value['유보율'][3])}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="fs-comment-text">유보율은 높을수록 좋다.</div>
-            <!-- 재무비율 END -->'''
+            <!-- 재무상태표/재무비율 Chart END -->'''
     
     # HTML 현금흐름표
     cash_head = [date for date, value in list(scash.values())[0]]
