@@ -1,3 +1,4 @@
+import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 import re
@@ -12,7 +13,6 @@ def get_snapshot_soup(gicode) :
     soup = BeautifulSoup(response.text, 'html.parser')
     
     return soup
-
 
 # 연결재무제표 (연간) 추출
 def get_year_fh(soup) :
@@ -716,6 +716,20 @@ def fs_table(base, txt) :
 
     chart_class = 'fs-y-chart' if txt == '연간' else 'fs-q-chart'
 
+    # 3년 연속 적자인지?
+    pm_flag = False
+    for pl in [list(profit.values())[:3], list(profit.values())[1:]] :
+        pm_cnt = 1
+        for p, w in pl :
+            if p != None :
+                if p < 0 :
+                    pm_cnt+=1
+        
+        if pm_cnt >= 3:
+            pm_flag = True
+        else :
+            pm_flag = False
+
     # 올해 예상이 없는 경우 가중평균으로 계산
     for metr in [sales, profit, real_profit, interest, roe, per, pbr] :
         nones = [v for v, w in list(metr.values()) if v == None]
@@ -736,7 +750,7 @@ def fs_table(base, txt) :
     none_data_flag = []
    
     for value in final_values :
-        if all(v == None for v, w in value) or len([v for v, w in value if v != None]) == 1 :
+        if all(v == None for v, w in value) : # or len([v for v, w in value if v != None]) == 1
             none_data_flag.append(True)
         else :
             none_data_flag.append(False)
@@ -779,7 +793,7 @@ def fs_table(base, txt) :
                             <td{' class="weight-value"' if sales['c4'][1] else ''}><span{' class="bad-value"' if int_cond(sales['c4'][0]) and (sales['c4'][0] < 50) and (txt=='연간') else ''}>{comma(sales['c4'][0])}</span></td>
                         </tr>
                         <tr>
-                            <th>영업이익</th>
+                            <th><span{' class="bad-value"' if pm_flag and txt=='연간' else ''}>영업이익</span></th>
                             <td{' class="weight-value"' if profit['c1'][1] else ''}><span{' class="bad-value"' if int_cond(profit['c1'][0]) and (profit['c1'][0] < 0) else ''}>{comma(profit['c1'][0])}</span></td>
                             <td{' class="weight-value"' if profit['c2'][1] else ''}><span{' class="bad-value"' if int_cond(profit['c2'][0]) and (profit['c2'][0] < 0) else ''}>{comma(profit['c2'][0])}</span></td>
                             <td{' class="weight-value"' if profit['c3'][1] else ''}><span{' class="bad-value"' if int_cond(profit['c3'][0]) and (profit['c3'][0] < 0) else ''}>{comma(profit['c3'][0])}</span></td>
@@ -843,9 +857,9 @@ def fs_table(base, txt) :
                 <canvas class="{chart_class}"></canvas>
                 <script>
                     financeSetChart('.{chart_class}', {table_head}, [
-                        {[v for v, f in sales.values()]},
-                        {profit_ratio},
-                        {real_profit_ratio},
+                        {['null' if v == None else v for v, f in sales.values()]},
+                        {['null' if v == None else v for v in profit_ratio]},
+                        {['null' if v == None else v for v in real_profit_ratio]},
                     ]);
                 </script>
             </div>
@@ -975,9 +989,24 @@ def get_html(gicode) :
     </script>
     <!-- START -->
     <!-- Head -->
-    <h1>주식종목 간단 분석:{sname}_{sdate} 기준</h1>
+    <h1>{sname} 주식 재무 분석 & 적정주가 계산</h1>
     <div class="a-line"></div>
     <!-- Head END -->
+    <!-- 안내사항 -->
+    <div style="font-size: 0.8rem;">
+        <ul>
+            <li>Company Guide/Naver 증권에서 <b>웹스크래핑한 데이터</b>입니다.</li>
+            <li>모바일에서도 확인은 가능하지만 PC가 더 편리할 수 있습니다.</li>
+            <li>이 포스트는 <b>{sdate} 기준</b>입니다. <b>재무 데이터는 이후 변경될 수 있습니다.</b></li>
+            <li><b>긍정적인 수치</b>는 <span class="good-value"><b>초록색 폰트</b></span>로 표시됩니다.</li>
+            <li><b>부정적인 수치</b>는 <span class="bad-value"><b>빨간색 폰트</b></span>로 표시됩니다.</li>
+            <li><span class="weight-value"><b>노란색 배경</b></span>은 <b>가중 평균</b>으로 계산된 수치입니다.</li>
+            <li>요약/결론은 <b>AI가 작성</b>했습니다.</li>
+            <li><b>자료는 참고용 정보</b>일 뿐입니다. <b>투자 결과에 대한 책임은 본인</b>에게 있습니다.</li>
+        </ul>
+    </div>
+    <div class="a-line"></div>
+
     '''.format(sname=sname, sdate=sdate.split(' ')[0])
 
     # HTML 종목 기본 정보
@@ -1029,6 +1058,10 @@ def get_html(gicode) :
                 <div class="info-detail">{ssummary}</div>
             </div>
         </div>
+    </div>
+    <div class="fs-btn-a">
+        <a title="NAVER 증권:{sname}" target="_blank" href="https://finance.naver.com/item/main.nhn?code={gicode}">NAVER 증권 바로가기</a>
+        <a title="Company Guide:{sname}" target="_blank" href="http://comp.fnguide.com/SVO2/ASP/SVD_main.asp?pGB=1&gicode=A{gicode}&cID=&MenuYn=Y&ReportGB=&NewMenuID=11&stkGb=&strResearchYN=">Company Guide 바로가기</a>
     </div>
     <!-- 종목 기본 정보 END-->
     <div class="a-line"></div>
@@ -1331,8 +1364,17 @@ def get_html(gicode) :
             <!-- 적정주가 계산 파트 -->
             <div class="report-title">적정주가 계산</div>
             <!-- 영업이익*PER 적정 주가 계산 -->
-            <div class="fs-head" style="margin-top: 20px">
-                <div class="fs-title">영업이익*PER</div>
+            <div class="fs-head fs-with-q" style="margin-top: 20px;margin-bottom: 10px">
+                <div class="fs-with-q">
+                    <div class="fs-title">영업이익*PER</div>
+                    <div>
+                        <a href="https://waymond.tistory.com/40" target="_blank" title="적정주가 간단하게 계산해보기">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                        </svg>                  
+                        </a>
+                    </div>
+                </div>
             </div>
             <div class="none-data">예상되는 영업이익이 적자이므로 적정주가 계산을 진행하지 않습니다.</div>
             <!-- 영업이익*PER END -->
@@ -1426,6 +1468,11 @@ def get_html(gicode) :
                         </tr>
                     </tbody>
                 </table>
+                
+            </div>
+            <div class="fs-comment-text">
+                <div>NV=NAVER 증권 기준</div>
+                <div>CG=Company Guide 기준</div>
             </div>
             <!-- 영업이익*PER END -->
             <!-- 영업이익*PER Chart -->
@@ -1482,7 +1529,7 @@ def get_html(gicode) :
                                         label1: {{
                                             type: 'label',
                                             yValue: nowValue,
-                                            content: ['현재 주가', `${{nowValue.toLocaleString()}}원`],
+                                            content: [`현재 주가 ${{nowValue.toLocaleString()}}원`, ''],
                                             color: 'rgba(255, 127, 80, 1)',
                                             font: {{
                                                 size: 13,
@@ -1555,8 +1602,17 @@ def get_html(gicode) :
 
     html_srim = f'''
             <!-- SRIM 계산 -->
-            <div class="fs-head" style="margin-top: 20px">
-                <div class="fs-title">SRIM</div>
+            <div class="fs-head fs-with-q" style="margin-top: 20px;margin-bottom: 10px">
+                <div class="fs-with-q">
+                    <div class="fs-title">SRIM</div>
+                    <div>
+                        <a href="https://waymond.tistory.com/41" target="_blank" title="주식투자 전략:SRIM으로 적정주가 계산">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                        </svg>                  
+                        </a>
+                    </div>
+                </div>
             </div>
             <div class="standard-info">
                 <div class="info-one">
@@ -1737,7 +1793,7 @@ def get_html(gicode) :
                                 label1: {{
                                     type: 'label',
                                     yValue: srimNowValue,
-                                    content: ['현재 주가', `${{srimNowValue.toLocaleString()}}원`],
+                                    content: [`현재 주가 ${{srimNowValue.toLocaleString()}}원`, ''],
                                     color: 'rgba(255, 127, 80, 1)',
                                     font: {{
                                         size: 13,
@@ -1799,3 +1855,147 @@ def get_html(gicode) :
     file_date = file_date.replace('/', '')
     with open(f'{gicode}_{sname}_{file_date}.html', 'w') as f :
         f.write(html_fs_body)
+
+
+
+### AI Generator
+def for_chatgpt(gicode) :
+    fs = get_stock_items(gicode)
+    current_price = fs['current']['current_price']
+    
+    # 연간재무제표
+    stock_name = fs['name']
+    fsy = pd.DataFrame(fs['year'])
+    fsy.set_index('year_chk', inplace=True)
+    fsy['영업이익률'] = (fsy['영업이익']/fsy['매출액'])*100
+    fsy['당기순이익률'] = (fsy['당기순이익']/fsy['매출액'])*100
+    fsy.rename(columns={'PER수정주가': 'PER', 'PBR수정주가': 'PBR'}, inplace=True)
+
+    # 분기재무제표
+    fsq = pd.DataFrame(fs['quarter'])
+    fsq.set_index('year_chk', inplace=True)
+    fsq['영업이익률'] = (fsq['영업이익']/fsq['매출액'])*100
+    fsq['당기순이익률'] = (fsq['당기순이익']/fsq['매출액'])*100
+    fsq.rename(columns={'PER수정주가': 'PER', 'PBR수정주가': 'PBR'}, inplace=True)
+
+    # 기준 컬럼
+    columns = ['매출액', '영업이익','영업이익률', '당기순이익', 'ROE', 'PER', 'PBR']
+
+    # 연간재무제표
+    annual_financial_statements = fsy[columns]
+    # 분기별재무제표
+    quarterly_financial_statements = fsq[columns]
+
+
+    # 재무상태표
+    ftable = fs['daecha_table']
+    col_name = [date for date, value in ftable['자산']]
+    row_date = {key: [v for d, v in values] for key, values in ftable.items()}
+    row_date['year_chk'] = col_name
+    financial_statements = pd.DataFrame(row_date)
+    financial_statements.set_index('year_chk', inplace=True)
+    financial_statements['부채비율'] = (financial_statements['부채']/financial_statements['자본'])*100
+    
+    # 현금흐름표
+    cash_table = fs['cash_table']
+    col_name = [date for date, value in cash_table['영업활동으로인한현금흐름']]
+    row_date = {key: [v for d, v in values] for key, values in cash_table.items()}
+    row_date['year_chk'] = col_name
+    statement_of_cash_flows = pd.DataFrame(row_date)
+    statement_of_cash_flows.set_index('year_chk', inplace=True)
+    
+
+    # PER 계산
+    # 올해 예상 PER
+    estimated_per = annual_financial_statements.iloc[3]['PER']
+
+    # 최근 가중 PER
+    before_per = list(annual_financial_statements.iloc[:3]['PER'].values)
+    before_per = [i for i in before_per if i != None]
+
+    # 가중 PER
+    weighted_per = set_weight_aver(*before_per)
+
+    # 영업이익
+    estimated_profit = annual_financial_statements.iloc[3]['영업이익']
+
+    # 영업이익 구분
+    profit_flag = '올해 예상 영업이익'
+    if estimated_profit == None :
+        profit_flag = '가중평균 영업이익'
+        before_profit = list(annual_financial_statements.iloc[:3]['영업이익'].values)
+        before_profit = [i for i in before_profit if i != None]
+        estimated_profit = set_weight_aver(*before_profit)
+
+    estimated_profit = estimated_profit*100000000
+
+    # 발행주식수
+    common = fs['common']
+
+    # 적정주가 계산 (PER)
+    compare_price = {
+        '현재주가': [current_price],
+        '영업이익': [estimated_profit/100000000],
+        '영업이익_구분': [profit_flag],
+        '예상PER_적정주가' : [round((estimated_profit*estimated_per)/common) if estimated_per != None else None],
+        '가중PER_적정주가' : [round((estimated_profit*weighted_per)/common)],
+    }
+
+    # PER 적정주가 데이터
+    calc_fair_value_use_per = pd.DataFrame(compare_price)
+
+    # SRIM
+    srim_result = SRIM(gicode)['srim']
+    # 예상 ROE가 있는 경우
+    ce_srim = srim_result['ce']
+    ce_roe = ce_srim['roe']
+    if ce_roe != None :
+        ce_result = pd.DataFrame(ce_srim['w'])
+        ce_result.drop(index='svalue', inplace=True)
+        ce_result['현재 주가'] = current_price
+        ce_result['ROE'] = ce_roe
+        ce_result.rename(index={
+            'sprice': '올해예상_ROE'
+        }, columns={
+            'w1': '초과이익_지속_적정주가',
+            'w2': '초과이익_10%감소_적정주가',
+            'w3': '초과이익_20%감소_적정주가',
+            'w4': '초과이익_30%감소_적정주가',
+            'w5': '초과이익_40%감소_적정주가',
+            'w6': '초과이익_50%감소_적정주가',
+        }, inplace=True)
+
+    we_srim = srim_result['ce']
+    we_roe = we_srim['roe']
+    we_result = pd.DataFrame(we_srim['w'])
+    we_result.drop(index='svalue', inplace=True)
+    we_result['현재 주가'] = current_price
+    we_result['ROE'] = we_roe
+    we_result.rename(index={
+        'sprice': '가중평균_ROE'
+    }, columns={
+        'w1': '초과이익_지속_적정주가',
+        'w2': '초과이익_10%감소_적정주가',
+        'w3': '초과이익_20%감소_적정주가',
+        'w4': '초과이익_30%감소_적정주가',
+        'w5': '초과이익_40%감소_적정주가',
+        'w6': '초과이익_50%감소_적정주가',
+    }, inplace=True)
+
+    # SRIM 분석결과
+    SRIM_analysis_results = pd.DataFrame()
+    if ce_roe != None :
+        SRIM_analysis_results = pd.concat([ce_result, we_result])
+    else :
+        SRIM_analysis_results = we_result
+
+    return {
+        '연간재무제표': annual_financial_statements,
+        '분기재무제표': quarterly_financial_statements,
+        '재무상태표': financial_statements,
+        '현금흐름표': statement_of_cash_flows,
+        'PER_적정주가_계산_결과': calc_fair_value_use_per,
+        'SRIM_적정주가_계산_결과': SRIM_analysis_results
+    }
+    
+

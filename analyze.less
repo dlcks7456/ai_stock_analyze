@@ -26,7 +26,7 @@
 .a-line {
     border-top: 1px solid @gray-color;
     width: 100%;
-    margin-top: 30px;
+    margin-top: 25px;
     margin-bottom: 25px;
     .max-width-set();
 }
@@ -144,6 +144,7 @@
             width: 100%;
             font-size: 0.8rem;
             .max-width-set();
+            margin-top: 0 !important;
             margin-bottom: 0 !important;
             border-collapse: collapse;
             table-layout: fixed;
@@ -237,6 +238,7 @@
             border-radius: 10px;
             transition: background-color 0.3s;
             cursor: pointer;
+            .box-shadow-style();
 
             &:hover {
                 .srim-selected-style();
@@ -325,3 +327,49 @@
 .fs-hidden {
     display: none;
 }
+
+
+.fs-with-q {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+
+    a {
+        color: fade(@basic-color, 60%);
+        transition: color 0.5;
+        &:hover {
+            color: @basic-color;
+        }
+    }
+
+    svg {
+        width: 25px;
+        height: 25px;
+    }
+}
+
+
+.fs-btn-a {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    .max-width-set();
+
+    a {
+        color: black;
+        text-decoration: none;
+        border: 1px solid @gray-color;
+        padding: 10px;
+        border-radius: 10px;
+        background-color: fade(@basic-color, 20%);
+        font-size: 0.8rem;
+        transition: background-color 0.5s, color 0.5s;
+        .box-shadow-style();
+
+        &:hover {
+            background-color: @basic-color;
+            color: white;
+        }
+    }
+}
+

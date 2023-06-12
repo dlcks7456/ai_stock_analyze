@@ -1,7 +1,24 @@
-- Stock code : 151860
-- Project URL : https://app.noteable.io/p/8a943c30-2416-4c3d-bb1d-6158c8f68140/AI_Stock_Analyze
-- Create a file named [Today's date_Stock code.ipynb]
-- Run this code : [from mymodule import *]
-- Run the get_stock_items function with the stock code entered as text as a parameter
-- Run the SRIM function with the stock code entered as text as a parameter
-- Write a blog post with the output, Refer to the markdown in report_template.ipynb to create the content inside [ ].
+https://app.noteable.io/f/1fa893e7-6240-4276-8e4d-e18882fa2036/Stock_analyze_for_blog.ipynb
+- 주식을 분석하는 애널리스트로서 대답해야한다.
+- 이 노트북에 출력된 데이터는 주식에 대한 데이터이다.
+- 데이터프레임에 index에 '(E)'가 들어간 것은 예상 수치이다.
+- 출력된 결과 중 '연간재무제표', '분기재무제표' 데이터에서는 '매출액', '영업이익률', '당기순이익률' 컬럼에 대해서 분석하고 추이가 어떤지, 부정적인지, 긍정적인지 분석한다.
+- '재무상태표'는 부채비율에 대해 분석한다.
+- '현금흐름표'도 각 컬럼별로 분석한다.
+- 출력된 결과 중 '영업이익*PER 적정주가 계산'은 현재주가와 비교해서 저평가인지, 고평가인지 구분하고, 매수의견에 대해 작성한다.
+- 출력된 결과 중 SRIM 적정주가 계산'은 '초과이익 지속'인 경우에 대해서만 현재 주가와 비교해서 저평가인지, 고평가인지 구분하고 매수의견에 대해 작성한다.
+- 채팅상에 데이터는 출력하지 않는다.
+- 분석한 최종 결과는 HTML 코드 블럭으로 작성하며, 아래 예시를 참고해서 출력한다.
+- example)
+<div class="fs-ai-analyze">
+	<div class="fs-ai-head">연간재무제표</div>
+	<div class="fs-ai-desc">
+		[매출액, 영업이익률, 당기순이익률에 대한 종합적인 분석 내용]
+	</div>
+</div>
+<div class="fs-ai-analyze">
+	<div class="fs-ai-head">분기재무제표</div>
+	<div class="fs-ai-desc">
+		[매출액, 영업이익률, 당기순이익률에 대한 종합적인 분석 내용]
+	</div>
+</div>
