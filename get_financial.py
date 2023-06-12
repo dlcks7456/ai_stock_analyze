@@ -989,7 +989,7 @@ def get_html(gicode) :
     </script>
     <!-- START -->
     <!-- Head -->
-    <h1>{sname} 주식 재무 분석 & 적정주가 계산</h1>
+    <h1>{sname}:주식 재무 분석 & 적정주가 계산</h1>
     <div class="a-line"></div>
     <!-- Head END -->
     <!-- 안내사항 -->
