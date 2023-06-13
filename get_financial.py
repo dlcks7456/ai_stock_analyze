@@ -390,6 +390,11 @@ def get_same_per(gicode) :
     nv_same_per = None
     table = nv_soup.find('table', {'summary': '동일업종 PER 정보'})
     table_em = table.find('em').get_text(strip=True)
+
+    nv_a = table.find('a')['href']
+    nv_main = 'https://finance.naver.com'
+    nv_url = f'{nv_main}{nv_a}'
+    
     try :
         nv_same_per = float(table_em)
     except :
@@ -405,9 +410,13 @@ def get_same_per(gicode) :
     except :
         cg_same_per = None
 
+    cg_url = f'http://comp.fnguide.com/SVO2/ASP/SVD_ujanal.asp?pGB=1&gicode=A{gicode}&cID=&MenuYn=Y&ReportGB=&NewMenuID=110&stkGb=701'
+
     return {
         'naver': nv_same_per,
-        'company': cg_same_per
+        'naver_url': nv_url,
+        'company': cg_same_per,
+        'company_url': cg_url
     }
     
 
@@ -820,12 +829,13 @@ def fs_table(base, txt) :
                             <td{' class="weight-value"' if real_profit['c3'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[2] >= 10 else ' class="bad-value"' if real_profit_ratio[2] < 3 else '') if real_profit_ratio[2] in [float, int] else ''}>{comma(real_profit_ratio[2])}</span></td>
                             <td{' class="weight-value"' if real_profit['c4'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[3] >= 10 else ' class="bad-value"' if real_profit_ratio[3] < 3 else '') if real_profit_ratio[3] in [float, int] else ''}>{comma(real_profit_ratio[3])}</span></td>
                         </tr>
-                        <tr>
+                        <tr><!--
                             <th>지배주주지분</th>
                             <td{' class="weight-value"' if interest['c1'][1] else ''}>{comma(interest['c1'][0])}</td>
                             <td{' class="weight-value"' if interest['c2'][1] else ''}>{comma(interest['c2'][0])}</td>
                             <td{' class="weight-value"' if interest['c3'][1] else ''}>{comma(interest['c3'][0])}</td>
                             <td{' class="weight-value"' if interest['c4'][1] else ''}>{comma(interest['c4'][0])}</td>
+                            -->
                         </tr>
                         <tr>
                             <th>ROE</th>
@@ -858,6 +868,8 @@ def fs_table(base, txt) :
                 <script>
                     financeSetChart('.{chart_class}', {table_head}, [
                         {['null' if v == None else v for v, f in sales.values()]},
+                        {['null' if v == None else v for v, f in profit.values()]},
+                        {['null' if v == None else v for v, f in real_profit.values()]},
                         {['null' if v == None else v for v in profit_ratio]},
                         {['null' if v == None else v for v in real_profit_ratio]},
                     ]);
@@ -945,18 +957,34 @@ def get_html(gicode) :
                     yAxisID: 'y1',
                     type: 'bar'
                 }}, {{
-                    label: '영업이익률',
+                    label: '영업이익',
                     data: datas[1],
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1,
-                    yAxisID: 'y2',
-                }}, {{
-                    label: '당기순이익률',
-                    data: datas[2],
                     backgroundColor: 'rgba(0, 0, 128, 0.2)',
                     borderColor: 'rgba(0, 0, 128, 1)',
                     borderWidth: 1,
+                    yAxisID: 'y1',
+                    type: 'bar'
+                }}, {{
+                    label: '당기순이익',
+                    data: datas[2],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y1',
+                    type: 'bar'
+                }}, {{
+                    label: '영업이익률',
+                    data: datas[3],
+                    backgroundColor: 'rgba(255, 223, 0, 0.2)',
+                    borderColor: 'rgba(255, 223, 0, 1)',
+                    borderWidth: 2,
+                    yAxisID: 'y2',
+                }}, {{
+                    label: '당기순이익률',
+                    data: datas[4],
+                    backgroundColor: 'rgba(135, 206, 250, 0.2)',
+                    borderColor: 'rgba(135, 206, 250, 1)',
+                    borderWidth: 2,
                     yAxisID: 'y2',
                 }}]
             }},
@@ -1412,7 +1440,9 @@ def get_html(gicode) :
 
     # 업종 PER (NAVER/CG 따로)
     nv_per = same_pers['naver']
+    nv_url = same_pers['naver_url']
     cg_per = same_pers['company']
+    cg_url = same_pers['company_url']
 
     # 발행 주식수
     sc = scommon
@@ -1476,13 +1506,13 @@ def get_html(gicode) :
                             <td>{comma(cp_value(yprofit, ywper, sc)['price'])}원</td>
                         </tr>
                         <tr>
-                            <th>업종 (NV)</th>
+                            <th><a href="{nv_url}" target="_blank">업종 (NV)</a></th>
                             <td>{comma(nv_per)}</td>
                             <td>{comma(cp_value(yprofit, nv_per, sc)['value'])}억원</td>
                             <td>{comma(cp_value(yprofit, nv_per, sc)['price'])}원</td>
                         </tr>
                         <tr>
-                            <th>업종 (CG)</th>
+                            <th><a href="{cg_url}" target="_blank">업종 (CG)</a></th>
                             <td>{comma(cg_per)}</td>
                             <td>{comma(cp_value(yprofit, cg_per, sc)['value'])}억원</td>
                             <td>{comma(cp_value(yprofit, cg_per, sc)['price'])}원</td>
@@ -1890,7 +1920,7 @@ def get_html(gicode) :
     re_date = sdate.split(' ')[0]
     file_date = re_date
     file_date = file_date.replace('/', '')
-    file_name = f'{gicode}_{sname}_{file_date}.html'
+    file_name = f'{file_date}_{gicode}_{sname}.html'
     with open(file_name, 'w') as f :
         f.write(html_fs_body)
     print(f'{file_name} file has been created.')

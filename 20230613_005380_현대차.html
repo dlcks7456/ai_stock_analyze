@@ -22,18 +22,34 @@
                     yAxisID: 'y1',
                     type: 'bar'
                 }, {
-                    label: '영업이익률',
+                    label: '영업이익',
                     data: datas[1],
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1,
-                    yAxisID: 'y2',
-                }, {
-                    label: '당기순이익률',
-                    data: datas[2],
                     backgroundColor: 'rgba(0, 0, 128, 0.2)',
                     borderColor: 'rgba(0, 0, 128, 1)',
                     borderWidth: 1,
+                    yAxisID: 'y1',
+                    type: 'bar'
+                }, {
+                    label: '당기순이익',
+                    data: datas[2],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y1',
+                    type: 'bar'
+                }, {
+                    label: '영업이익률',
+                    data: datas[3],
+                    backgroundColor: 'rgba(255, 223, 0, 0.2)',
+                    borderColor: 'rgba(255, 223, 0, 1)',
+                    borderWidth: 2,
+                    yAxisID: 'y2',
+                }, {
+                    label: '당기순이익률',
+                    data: datas[4],
+                    backgroundColor: 'rgba(135, 206, 250, 0.2)',
+                    borderColor: 'rgba(135, 206, 250, 1)',
+                    borderWidth: 2,
                     yAxisID: 'y2',
                 }]
             },
@@ -102,18 +118,18 @@
 
             <div class="info-cell">
                 <div class="cell-head">현재 주가</div>
-                <div class="cell-desc">196,200원</div>
+                <div class="cell-desc">196,700원</div>
             </div>
 
             <div class="info-cell">
                 <div class="cell-head">기준 날짜</div>
-                <div class="cell-desc">2023/06/13 00:09</div>
+                <div class="cell-desc">2023/06/13 10:26</div>
             </div>
         </div>
 
         <div class="info-one">
             <div class="cell-head">시가 총액</div>
-            <div class="cell-desc">41,692,900,000,000</div>
+            <div class="cell-desc">41,502,500,000,000</div>
         </div>
 
         <div class="info-one">
@@ -196,12 +212,13 @@
                             <td><span>5.60</span></td>
                             <td><span>7.27</span></td>
                         </tr>
-                        <tr>
+                        <tr><!--
                             <th>지배주주지분</th>
                             <td>694,806</td>
                             <td>749,861</td>
                             <td>823,493</td>
                             <td>909,005</td>
+                            -->
                         </tr>
                         <tr>
                             <th>ROE</th>
@@ -215,7 +232,7 @@
                             <td><span class="bad-value">37.33</span></td>
                             <td><span>11.71</span></td>
                             <td><span class="good-value">5.68</span></td>
-                            <td><span class="good-value">5.04</span></td>
+                            <td><span class="good-value">5.01</span></td>
                         </tr>
                         <tr>
                             <th>PBR</th>
@@ -234,6 +251,8 @@
                 <script>
                     financeSetChart('.fs-y-chart', ['2020/12', '2021/12', '2022/12', '2023/12(E)'], [
                         [1039976, 1176106, 1425275, 1557098],
+                        [23947, 66789, 98198, 131417],
+                        [19246, 56931, 79836, 113162],
                         [2.3, 5.68, 6.89, 8.44],
                         [1.85, 4.84, 5.6, 7.27],
                     ]);
@@ -292,12 +311,13 @@
                             <td><span>6.56</span></td>
                             <td><span>5.52</span></td>
                         </tr>
-                        <tr>
+                        <tr><!--
                             <th>지배주주지분</th>
                             <td>852,479</td>
                             <td></td>
                             <td></td>
                             <td></td>
+                            -->
                         </tr>
                         <tr>
                             <th>ROE</th>
@@ -330,6 +350,8 @@
                 <script>
                     financeSetChart('.fs-q-chart', ['2023/03', '2023/06(E)', '2023/09(E)', '2023/12(E)'], [
                         [377787, 399340, 383623, 397401],
+                        [35927, 36089, 28780, 30436],
+                        [34194, 30327, 25170, 21950],
                         [9.51, 9.04, 7.5, 7.66],
                         [9.05, 7.59, 6.56, 5.52],
                     ]);
@@ -612,7 +634,7 @@
                 </div>
                 <div class="info-one">
                     <div class="cell-head">현재주가</div>
-                    <div class="cell-desc">196,200원</div>
+                    <div class="cell-desc">196,700원</div>
                 </div>
                 <div class="info-one">
                     <div class="cell-head">발행주식수</div>
@@ -630,9 +652,9 @@
                     <tbody>
                         <tr>
                             <th>올해 예상</th>
-                            <td>5.04</td>
-                            <td>662,342억원</td>
-                            <td>313,117원</td>
+                            <td>5.01</td>
+                            <td>658,399억원</td>
+                            <td>311,253원</td>
                         </tr>
                         <tr>
                             <th>가중 평균</th>
@@ -641,16 +663,16 @@
                             <td>805,159원</td>
                         </tr>
                         <tr>
-                            <th>업종 (NV)</th>
-                            <td>4.98</td>
-                            <td>654,457억원</td>
-                            <td>309,390원</td>
+                            <th><a href="https://finance.naver.com/sise/sise_group_detail.naver?type=upjong&no=273" target="_blank">업종 (NV)</a></th>
+                            <td>4.93</td>
+                            <td>647,886억원</td>
+                            <td>306,283원</td>
                         </tr>
                         <tr>
-                            <th>업종 (CG)</th>
-                            <td>11.11</td>
-                            <td>1,460,043억원</td>
-                            <td>690,225원</td>
+                            <th><a href="http://comp.fnguide.com/SVO2/ASP/SVD_ujanal.asp?pGB=1&gicode=A005380&cID=&MenuYn=Y&ReportGB=&NewMenuID=110&stkGb=701" target="_blank">업종 (CG)</a></th>
+                            <td>11.09</td>
+                            <td>1,457,415억원</td>
+                            <td>688,982원</td>
                         </tr>
                         <tr>
                             <th>별도 조정</th>
@@ -674,7 +696,7 @@
                 <canvas class="fs-per-chart"></canvas>
                 <script>
                     const perCanvas = document.querySelector('.fs-per-chart').getContext('2d');
-                    const nowValue = 196200;
+                    const nowValue = 196700;
                     let calcPer = 0;
                     const perChart = new Chart(perCanvas, {
                         type: 'line',
@@ -682,7 +704,7 @@
                             labels: ['올해 예상', '가중 평균', '업종 PER(NV)', '업종 PER(CG)', '별도 조정'],
                             datasets: [{
                                 label: '적정주가',
-                                data: [313117, 805159, 309390, 690225, calcPer],
+                                data: [311253, 805159, 306283, 688982, calcPer],
                                 backgroundColor: 'rgba(16, 163, 127, 0.2)',
                                 borderColor: 'rgba(16, 163, 127, 1)',
                                 borderWidth: 1,
@@ -921,7 +943,7 @@
                 [460502, 431568, 421343, 416115, 412939, 410806],
                 [271102, 342551, 367799, 380710, 388551, 393818]
             ];
-            const srimNowValue = 196200;
+            const srimNowValue = 196700;
             let setSRIM = srimResults[0];
             const srimChart = new Chart(srimCanvas, {
                 type: 'line',
