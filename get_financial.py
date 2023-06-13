@@ -1927,7 +1927,7 @@ def get_html(gicode) :
     with open(file_name, 'w') as f :
         f.write(html_fs_body)
     print(f'{file_name} file has been created.')
-    print(f'{sname}:주식 재무 분석 & 적정주가 계산_{re_date}')
+    print(f'[A.I] {sname}:주식 재무 분석 & 적정주가 계산_{re_date}')
     return file_name
 
 
