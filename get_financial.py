@@ -1,8 +1,10 @@
 import pandas as pd
+import numpy as np
 import requests
 from bs4 import BeautifulSoup
 import re
 from datetime import datetime
+
 
 def get_snapshot_soup(gicode) :
     # URL 설정
@@ -774,9 +776,9 @@ def fs_table(base, txt) :
             <!-- {txt} END -->'''
 
     # 영업이익률
-    profit_ratio = [round(((profit[key][0])/(value[0]))*100, 2) if all([profit[key][0] != None, value[0] != None]) else '' for key, value in sales.items()]
+    profit_ratio = [round(((profit[key][0])/(value[0]))*100, 2) if all([profit[key][0] != None, value[0] != None]) else None for key, value in sales.items()]
     # 순이익률
-    real_profit_ratio = [round(((real_profit[key][0])/(value[0]))*100, 2) if all([real_profit[key][0] != None, value[0] != None]) else '' for key, value in sales.items()]
+    real_profit_ratio = [round(((real_profit[key][0])/(value[0]))*100, 2) if all([real_profit[key][0] != None, value[0] != None]) else None for key, value in sales.items()]
 
     html_fs = f'''
             <!-- {txt} -->
@@ -810,10 +812,10 @@ def fs_table(base, txt) :
                         </tr>
                         <tr>
                             <th>영업이익률</th>
-                            <td{' class="weight-value"' if profit['c1'][1] else ''}><span{(' class="good-value"' if profit_ratio[0] >= 15 else ' class="bad-value"' if profit_ratio[0] < 5 else '') if type(profit_ratio[0]) in [float, int] else ''}>{comma(profit_ratio[0])}</span></td>
-                            <td{' class="weight-value"' if profit['c2'][1] else ''}><span{(' class="good-value"' if profit_ratio[1] >= 15 else ' class="bad-value"' if profit_ratio[1] < 5 else '') if type(profit_ratio[1]) in [float, int] else ''}>{comma(profit_ratio[1])}</span></td>
-                            <td{' class="weight-value"' if profit['c3'][1] else ''}><span{(' class="good-value"' if profit_ratio[2] >= 15 else ' class="bad-value"' if profit_ratio[2] < 5 else '') if type(profit_ratio[2]) in [float, int] else ''}>{comma(profit_ratio[2])}</span></td>
-                            <td{' class="weight-value"' if profit['c4'][1] else ''}><span{(' class="good-value"' if profit_ratio[3] >= 15 else ' class="bad-value"' if profit_ratio[3] < 5 else '') if type(profit_ratio[3]) in [float, int] else ''}>{comma(profit_ratio[3])}</span></td>
+                            <td{' class="weight-value"' if profit['c1'][1] else ''}><span{(' class="good-value"' if profit_ratio[0] >= 15 else ' class="bad-value"' if profit_ratio[0] < 5 else '') if type(profit_ratio[0]) in [float, int] else ''}>{comma(profit_ratio[0] if not profit_ratio[0] != None else '')}</span></td>
+                            <td{' class="weight-value"' if profit['c2'][1] else ''}><span{(' class="good-value"' if profit_ratio[1] >= 15 else ' class="bad-value"' if profit_ratio[1] < 5 else '') if type(profit_ratio[1]) in [float, int] else ''}>{comma(profit_ratio[1] if not profit_ratio[1] != None else '')}</span></td>
+                            <td{' class="weight-value"' if profit['c3'][1] else ''}><span{(' class="good-value"' if profit_ratio[2] >= 15 else ' class="bad-value"' if profit_ratio[2] < 5 else '') if type(profit_ratio[2]) in [float, int] else ''}>{comma(profit_ratio[2] if not profit_ratio[2] != None else '')}</span></td>
+                            <td{' class="weight-value"' if profit['c4'][1] else ''}><span{(' class="good-value"' if profit_ratio[3] >= 15 else ' class="bad-value"' if profit_ratio[3] < 5 else '') if type(profit_ratio[3]) in [float, int] else ''}>{comma(profit_ratio[3] if not profit_ratio[3] != None else '')}</span></td>
                         </tr>
                         <tr>
                             <th>당기순이익</th>
@@ -824,10 +826,10 @@ def fs_table(base, txt) :
                         </tr>
                         <tr>
                             <th>당기순이익률</th>
-                            <td{' class="weight-value"' if real_profit['c1'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[0] >= 10 else ' class="bad-value"' if real_profit_ratio[0] < 3 else '') if real_profit_ratio[0] in [float, int] else ''}>{comma(real_profit_ratio[0])}</span></td>
-                            <td{' class="weight-value"' if real_profit['c2'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[1] >= 10 else ' class="bad-value"' if real_profit_ratio[1] < 3 else '') if real_profit_ratio[1] in [float, int] else ''}>{comma(real_profit_ratio[1])}</span></td>
-                            <td{' class="weight-value"' if real_profit['c3'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[2] >= 10 else ' class="bad-value"' if real_profit_ratio[2] < 3 else '') if real_profit_ratio[2] in [float, int] else ''}>{comma(real_profit_ratio[2])}</span></td>
-                            <td{' class="weight-value"' if real_profit['c4'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[3] >= 10 else ' class="bad-value"' if real_profit_ratio[3] < 3 else '') if real_profit_ratio[3] in [float, int] else ''}>{comma(real_profit_ratio[3])}</span></td>
+                            <td{' class="weight-value"' if real_profit['c1'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[0] >= 10 else ' class="bad-value"' if real_profit_ratio[0] < 3 else '') if real_profit_ratio[0] in [float, int] else ''}>{comma(real_profit_ratio[0]) if real_profit_ratio[0] != None else ''}</span></td>
+                            <td{' class="weight-value"' if real_profit['c2'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[1] >= 10 else ' class="bad-value"' if real_profit_ratio[1] < 3 else '') if real_profit_ratio[1] in [float, int] else ''}>{comma(real_profit_ratio[1]) if real_profit_ratio[1] != None else ''}</span></td>
+                            <td{' class="weight-value"' if real_profit['c3'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[2] >= 10 else ' class="bad-value"' if real_profit_ratio[2] < 3 else '') if real_profit_ratio[2] in [float, int] else ''}>{comma(real_profit_ratio[2]) if real_profit_ratio[2] != None else ''}</span></td>
+                            <td{' class="weight-value"' if real_profit['c4'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[3] >= 10 else ' class="bad-value"' if real_profit_ratio[3] < 3 else '') if real_profit_ratio[3] in [float, int] else ''}>{comma(real_profit_ratio[3]) if real_profit_ratio[3] != None else ''}</span></td>
                         </tr>
                         <tr><!--
                             <th>지배주주지분</th>
@@ -1029,7 +1031,8 @@ def get_html(gicode) :
             <li><b>긍정적인 수치</b>는 <span class="good-value"><b>초록색 폰트</b></span>로 표시됩니다.</li>
             <li><b>부정적인 수치</b>는 <span class="bad-value"><b>빨간색 폰트</b></span>로 표시됩니다.</li>
             <li><span class="weight-value"><b>노란색 배경</b></span>은 <b>가중 평균</b>으로 계산된 수치입니다.</li>
-            <li>요약/결론은 <b>AI가 작성</b>했습니다.</li>
+            <li>재무정보의 차트는 범례를 클릭하면 해당 범례를 숨기거나 나타낼 수 있습니다.</li>
+            <li><b>요약은 AI가 작성</b>했습니다.</li>
             <li><b>자료는 참고용 정보</b>일 뿐입니다. <b>투자 결과에 대한 책임은 본인</b>에게 있습니다.</li>
         </ul>
     </div>
@@ -2001,7 +2004,7 @@ def for_chatgpt(gicode) :
 
     # 영업이익 구분
     profit_flag = '올해 예상 영업이익'
-    if estimated_profit == None :
+    if np.isnan(estimated_profit) :
         profit_flag = '가중평균 영업이익'
         before_profit = list(annual_financial_statements.iloc[:3]['영업이익'].values)
         before_profit = [i for i in before_profit if i != None]
@@ -2011,14 +2014,13 @@ def for_chatgpt(gicode) :
 
     # 발행주식수
     common = fs['common']
-
     # 적정주가 계산 (PER)
     compare_price = {
         '현재주가': [current_price],
         '영업이익': [estimated_profit/100000000],
         '영업이익_구분': [profit_flag],
-        '예상PER_적정주가' : [round((estimated_profit*estimated_per)/common) if estimated_per != None else None],
-        '가중PER_적정주가' : [round((estimated_profit*weighted_per)/common)],
+        '예상PER_적정주가' : [round((estimated_profit*estimated_per)/common) if not (np.isnan(estimated_per))  else None],
+        '가중PER_적정주가' : [round((estimated_profit*weighted_per)/common) if not (np.isnan(weighted_per))  else None],
     }
 
     # PER 적정주가 데이터
@@ -2026,26 +2028,28 @@ def for_chatgpt(gicode) :
 
     # SRIM
     srim_result = SRIM(gicode)['srim']
-    # 예상 ROE가 있는 경우
-    ce_srim = srim_result['ce']
-    ce_roe = ce_srim['roe']
-    if ce_roe != None :
-        ce_result = pd.DataFrame(ce_srim['w'])
-        ce_result.drop(index='svalue', inplace=True)
-        ce_result['현재 주가'] = current_price
-        ce_result['ROE'] = ce_roe
-        ce_result.rename(index={
-            'sprice': '올해예상_ROE'
-        }, columns={
-            'w1': '초과이익_지속_적정주가',
-            'w2': '초과이익_10%감소_적정주가',
-            'w3': '초과이익_20%감소_적정주가',
-            'w4': '초과이익_30%감소_적정주가',
-            'w5': '초과이익_40%감소_적정주가',
-            'w6': '초과이익_50%감소_적정주가',
-        }, inplace=True)
+    ce_roe = None
+    if 'ce' in srim_result :
+        ce_srim = srim_result['ce']
+        ce_roe = ce_srim['roe']
+        # 예상 ROE가 있는 경우
+        if ce_roe != None :
+            ce_result = pd.DataFrame(ce_srim['w'])
+            ce_result.drop(index='svalue', inplace=True)
+            ce_result['현재 주가'] = current_price
+            ce_result['ROE'] = ce_roe
+            ce_result.rename(index={
+                'sprice': '올해예상_ROE'
+            }, columns={
+                'w1': '초과이익_지속_적정주가',
+                'w2': '초과이익_10%감소_적정주가',
+                'w3': '초과이익_20%감소_적정주가',
+                'w4': '초과이익_30%감소_적정주가',
+                'w5': '초과이익_40%감소_적정주가',
+                'w6': '초과이익_50%감소_적정주가',
+            }, inplace=True)
 
-    we_srim = srim_result['ce']
+    we_srim = srim_result['we']
     we_roe = we_srim['roe']
     we_result = pd.DataFrame(we_srim['w'])
     we_result.drop(index='svalue', inplace=True)
