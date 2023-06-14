@@ -645,11 +645,17 @@ def chk_int(value) :
     else :
         return False
 
-def comma(value, rd=1) :
+def comma(value, rd=1, decimal=False) :
     if type(value) == int :
         return format(round(value, rd), ',')
     elif type(value) == float :
-        return "{:,.2f}".format(value)
+        if rd == 1 :
+            if decimal :
+                return "{:,.1f}".format(value, rd)
+            else :
+                return format(round(value), ',')
+        else :
+            return "{:,.{}f}".format(value, rd)
     else :
         return ''
     
@@ -724,7 +730,9 @@ def fs_table(base, txt) :
     roe = chk_weight(base['ROE'])
     per = chk_weight(base['PER수정주가'])
     pbr = chk_weight(base['PBR수정주가'])
-
+    cpt_total = chk_weight(base['자본총계'])
+    cpt = chk_weight(base['자본금'])
+        
     chart_class = 'fs-y-chart' if txt == '연간' else 'fs-q-chart'
 
     # 3년 연속 적자인지?
@@ -742,7 +750,7 @@ def fs_table(base, txt) :
             pm_flag = False
 
     # 올해 예상이 없는 경우 가중평균으로 계산
-    for metr in [sales, profit, real_profit, interest, roe, per, pbr] :
+    for metr in [sales, profit, real_profit, interest, roe, per, pbr, cpt_total, cpt] :
         nones = [v for v, w in list(metr.values()) if v == None]
         
         if len(nones) >= 3 :
@@ -757,7 +765,7 @@ def fs_table(base, txt) :
                     break
             nones = [v for v, w in list(metr.values()) if v == None]
 
-    final_values = [list(metr.values()) for metr in [sales, profit, real_profit, interest, roe, per, pbr]]
+    final_values = [list(metr.values()) for metr in [sales, profit, real_profit, interest, roe, per, pbr, cpt_total, cpt]]
     none_data_flag = []
    
     for value in final_values :
@@ -777,8 +785,25 @@ def fs_table(base, txt) :
 
     # 영업이익률
     profit_ratio = [round(((profit[key][0])/(value[0]))*100, 2) if all([profit[key][0] != None, value[0] != None]) else None for key, value in sales.items()]
+    profit_ratio_txt = ['' if i == None else comma(i, 2) for i in profit_ratio]
     # 순이익률
     real_profit_ratio = [round(((real_profit[key][0])/(value[0]))*100, 2) if all([real_profit[key][0] != None, value[0] != None]) else None for key, value in sales.items()]
+    real_profit_ratio_txt = ['' if i == None else comma(i, 2) for i in real_profit_ratio]
+
+    # 자본잠식 계산
+    zip_cpt = zip(list(cpt_total.values()), list(cpt.values()))
+    # 자본잠식률
+    erosion_rate = []
+    for tot, cpv in list(zip_cpt) :
+        t_v, t_w = tot
+        c_v, c_w = cpv
+        if not t_v == None and not c_v == None :
+            av = c_v - t_v
+            bv = (av/c_v)*100
+            er_ratio = round(bv, 2)
+            erosion_rate.append(er_ratio)
+        else :
+            erosion_rate.append(None)
 
     html_fs = f'''
             <!-- {txt} -->
@@ -812,10 +837,10 @@ def fs_table(base, txt) :
                         </tr>
                         <tr>
                             <th>영업이익률</th>
-                            <td{' class="weight-value"' if profit['c1'][1] else ''}><span{(' class="good-value"' if profit_ratio[0] >= 15 else ' class="bad-value"' if profit_ratio[0] < 5 else '') if type(profit_ratio[0]) in [float, int] else ''}>{comma(profit_ratio[0] if not profit_ratio[0] != None else '')}</span></td>
-                            <td{' class="weight-value"' if profit['c2'][1] else ''}><span{(' class="good-value"' if profit_ratio[1] >= 15 else ' class="bad-value"' if profit_ratio[1] < 5 else '') if type(profit_ratio[1]) in [float, int] else ''}>{comma(profit_ratio[1] if not profit_ratio[1] != None else '')}</span></td>
-                            <td{' class="weight-value"' if profit['c3'][1] else ''}><span{(' class="good-value"' if profit_ratio[2] >= 15 else ' class="bad-value"' if profit_ratio[2] < 5 else '') if type(profit_ratio[2]) in [float, int] else ''}>{comma(profit_ratio[2] if not profit_ratio[2] != None else '')}</span></td>
-                            <td{' class="weight-value"' if profit['c4'][1] else ''}><span{(' class="good-value"' if profit_ratio[3] >= 15 else ' class="bad-value"' if profit_ratio[3] < 5 else '') if type(profit_ratio[3]) in [float, int] else ''}>{comma(profit_ratio[3] if not profit_ratio[3] != None else '')}</span></td>
+                            <td{' class="weight-value"' if profit['c1'][1] else ''}><span{(' class="good-value"' if profit_ratio[0] >= 15 else ' class="bad-value"' if profit_ratio[0] < 5 else '') if type(profit_ratio[0]) in [float, int] else ''}>{profit_ratio_txt[0]}</span></td>
+                            <td{' class="weight-value"' if profit['c2'][1] else ''}><span{(' class="good-value"' if profit_ratio[1] >= 15 else ' class="bad-value"' if profit_ratio[1] < 5 else '') if type(profit_ratio[1]) in [float, int] else ''}>{profit_ratio_txt[1]}</span></td>
+                            <td{' class="weight-value"' if profit['c3'][1] else ''}><span{(' class="good-value"' if profit_ratio[2] >= 15 else ' class="bad-value"' if profit_ratio[2] < 5 else '') if type(profit_ratio[2]) in [float, int] else ''}>{profit_ratio_txt[2]}</span></td>
+                            <td{' class="weight-value"' if profit['c4'][1] else ''}><span{(' class="good-value"' if profit_ratio[3] >= 15 else ' class="bad-value"' if profit_ratio[3] < 5 else '') if type(profit_ratio[3]) in [float, int] else ''}>{profit_ratio_txt[3]}</span></td>
                         </tr>
                         <tr>
                             <th>당기순이익</th>
@@ -826,10 +851,10 @@ def fs_table(base, txt) :
                         </tr>
                         <tr>
                             <th>당기순이익률</th>
-                            <td{' class="weight-value"' if real_profit['c1'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[0] >= 10 else ' class="bad-value"' if real_profit_ratio[0] < 3 else '') if real_profit_ratio[0] in [float, int] else ''}>{comma(real_profit_ratio[0]) if real_profit_ratio[0] != None else ''}</span></td>
-                            <td{' class="weight-value"' if real_profit['c2'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[1] >= 10 else ' class="bad-value"' if real_profit_ratio[1] < 3 else '') if real_profit_ratio[1] in [float, int] else ''}>{comma(real_profit_ratio[1]) if real_profit_ratio[1] != None else ''}</span></td>
-                            <td{' class="weight-value"' if real_profit['c3'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[2] >= 10 else ' class="bad-value"' if real_profit_ratio[2] < 3 else '') if real_profit_ratio[2] in [float, int] else ''}>{comma(real_profit_ratio[2]) if real_profit_ratio[2] != None else ''}</span></td>
-                            <td{' class="weight-value"' if real_profit['c4'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[3] >= 10 else ' class="bad-value"' if real_profit_ratio[3] < 3 else '') if real_profit_ratio[3] in [float, int] else ''}>{comma(real_profit_ratio[3]) if real_profit_ratio[3] != None else ''}</span></td>
+                            <td{' class="weight-value"' if real_profit['c1'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[0] >= 10 else ' class="bad-value"' if real_profit_ratio[0] < 3 else '') if type(real_profit_ratio[0]) in [float, int] else ''}>{real_profit_ratio_txt[0]}</span></td>
+                            <td{' class="weight-value"' if real_profit['c2'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[1] >= 10 else ' class="bad-value"' if real_profit_ratio[1] < 3 else '') if type(real_profit_ratio[1]) in [float, int] else ''}>{real_profit_ratio_txt[1]}</span></td>
+                            <td{' class="weight-value"' if real_profit['c3'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[2] >= 10 else ' class="bad-value"' if real_profit_ratio[2] < 3 else '') if type(real_profit_ratio[2]) in [float, int] else ''}>{real_profit_ratio_txt[2]}</span></td>
+                            <td{' class="weight-value"' if real_profit['c4'][1] else ''}><span{(' class="good-value"' if real_profit_ratio[3] >= 10 else ' class="bad-value"' if real_profit_ratio[3] < 3 else '') if type(real_profit_ratio[3]) in [float, int] else ''}>{real_profit_ratio_txt[3]}</span></td>
                         </tr>
                         <tr><!--
                             <th>지배주주지분</th>
@@ -838,6 +863,27 @@ def fs_table(base, txt) :
                             <td{' class="weight-value"' if interest['c3'][1] else ''}>{comma(interest['c3'][0])}</td>
                             <td{' class="weight-value"' if interest['c4'][1] else ''}>{comma(interest['c4'][0])}</td>
                             -->
+                        </tr>
+                        <tr>
+                            <th>자본총계</th>
+                            <td{' class="weight-value"' if cpt_total['c1'][1] else ''}>{comma(cpt_total['c1'][0])}</td>
+                            <td{' class="weight-value"' if cpt_total['c2'][1] else ''}>{comma(cpt_total['c2'][0])}</td>
+                            <td{' class="weight-value"' if cpt_total['c3'][1] else ''}>{comma(cpt_total['c3'][0])}</td>
+                            <td{' class="weight-value"' if cpt_total['c4'][1] else ''}>{comma(cpt_total['c4'][0])}</td>
+                        </tr>
+                        <tr>
+                            <th>자본금</th>
+                            <td{' class="weight-value"' if cpt['c1'][1] else ''}>{comma(cpt['c1'][0])}</td>
+                            <td{' class="weight-value"' if cpt['c2'][1] else ''}>{comma(cpt['c2'][0])}</td>
+                            <td{' class="weight-value"' if cpt['c3'][1] else ''}>{comma(cpt['c3'][0])}</td>
+                            <td{' class="weight-value"' if cpt['c4'][1] else ''}>{comma(cpt['c4'][0])}</td>
+                        </tr>
+                        <tr>
+                            <th>자본잠식률</th>
+                            <td{' class="weight-value"' if (cpt_total['c1'][1] or cpt['c1'][1]) else ''}><span{' class="bad-value"' if erosion_rate[0] != None and erosion_rate[0] > 0 else ''}>{comma(erosion_rate[0], 2)}</span></td>
+                            <td{' class="weight-value"' if (cpt_total['c2'][1] or cpt['c2'][1]) else ''}><span{' class="bad-value"' if erosion_rate[1] != None and erosion_rate[1] > 0 else ''}>{comma(erosion_rate[1], 2)}</span></td>
+                            <td{' class="weight-value"' if (cpt_total['c3'][1] or cpt['c3'][1]) else ''}><span{' class="bad-value"' if erosion_rate[2] != None and erosion_rate[2] > 0 else ''}>{comma(erosion_rate[2], 2)}</span></td>
+                            <td{' class="weight-value"' if (cpt_total['c4'][1] or cpt['c4'][1]) else ''}><span{' class="bad-value"' if erosion_rate[3] != None and erosion_rate[3] > 0 else ''}>{comma(erosion_rate[3], 2)}</span></td>
                         </tr>
                         <tr>
                             <th>ROE</th>
@@ -1028,11 +1074,12 @@ def get_html(gicode) :
             <li>Company Guide/NAVER 증권에서 <b>웹스크래핑한 데이터</b>입니다.</li>
             <li>모바일에서도 확인은 가능하지만 PC가 더 편리할 수 있습니다.</li>
             <li>이 포스트는 <b>{sdate} 기준</b>입니다. <b>재무 데이터는 이후 변경될 수 있습니다.</b></li>
+            <li><b>요약은 AI가 작성</b>했습니다.</li>
             <li><b>긍정적인 수치</b>는 <span class="good-value"><b>초록색 폰트</b></span>로 표시됩니다.</li>
             <li><b>부정적인 수치</b>는 <span class="bad-value"><b>빨간색 폰트</b></span>로 표시됩니다.</li>
-            <li><span class="weight-value"><b>노란색 배경</b></span>은 <b>가중 평균</b>으로 계산된 수치입니다.</li>
+            <li><span class="weight-value"><b>노란색 배경</b></span>은 <span class="weight-value"><b>가중 평균</b></span>으로 계산된 수치입니다.</li>
+            <li>재무정보 중 <span class="weight-value"><b>가중 평균</b></span>으로 계산된 케이스는 <b>AI분석에서 제외</b>됩니다.</li>
             <li>재무정보의 차트는 범례를 클릭하면 해당 범례를 숨기거나 나타낼 수 있습니다.</li>
-            <li><b>요약은 AI가 작성</b>했습니다.</li>
             <li><b>자료는 참고용 정보</b>일 뿐입니다. <b>투자 결과에 대한 책임은 본인</b>에게 있습니다.</li>
         </ul>
     </div>
@@ -1188,31 +1235,31 @@ def get_html(gicode) :
                     <tbody>
                         <tr>
                             <th>유동비율</th>
-                            <td><span{' class="good-value"' if rate_value['유동비율'][0] >= 200 else ' class="bad-value"' if rate_value['유동비율'][0] < 100 else ''}>{comma(rate_value['유동비율'][0])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['유동비율'][1] >= 200 else ' class="bad-value"' if rate_value['유동비율'][1] < 100 else ''}>{comma(rate_value['유동비율'][1])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['유동비율'][2] >= 200 else ' class="bad-value"' if rate_value['유동비율'][2] < 100 else ''}>{comma(rate_value['유동비율'][2])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['유동비율'][3] >= 200 else ' class="bad-value"' if rate_value['유동비율'][3] < 100 else ''}>{comma(rate_value['유동비율'][3])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['유동비율'][0] >= 200 else ' class="bad-value"' if rate_value['유동비율'][0] < 100 else ''}>{comma(rate_value['유동비율'][0], decimal=True)}</span></td>
+                            <td><span{' class="good-value"' if rate_value['유동비율'][1] >= 200 else ' class="bad-value"' if rate_value['유동비율'][1] < 100 else ''}>{comma(rate_value['유동비율'][1], decimal=True)}</span></td>
+                            <td><span{' class="good-value"' if rate_value['유동비율'][2] >= 200 else ' class="bad-value"' if rate_value['유동비율'][2] < 100 else ''}>{comma(rate_value['유동비율'][2], decimal=True)}</span></td>
+                            <td><span{' class="good-value"' if rate_value['유동비율'][3] >= 200 else ' class="bad-value"' if rate_value['유동비율'][3] < 100 else ''}>{comma(rate_value['유동비율'][3], decimal=True)}</span></td>
                         </tr>
                         <tr>
                             <th>당좌비율</th>
-                            <td><span{' class="good-value"' if rate_value['당좌비율'][0] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][0] < 100 else ''}>{comma(rate_value['당좌비율'][0])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['당좌비율'][1] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][1] < 100 else ''}>{comma(rate_value['당좌비율'][1])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['당좌비율'][2] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][2] < 100 else ''}>{comma(rate_value['당좌비율'][2])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['당좌비율'][3] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][3] < 100 else ''}>{comma(rate_value['당좌비율'][3])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['당좌비율'][0] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][0] < 100 else ''}>{comma(rate_value['당좌비율'][0], decimal=True)}</span></td>
+                            <td><span{' class="good-value"' if rate_value['당좌비율'][1] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][1] < 100 else ''}>{comma(rate_value['당좌비율'][1], decimal=True)}</span></td>
+                            <td><span{' class="good-value"' if rate_value['당좌비율'][2] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][2] < 100 else ''}>{comma(rate_value['당좌비율'][2], decimal=True)}</span></td>
+                            <td><span{' class="good-value"' if rate_value['당좌비율'][3] >= 150 else ' class="bad-value"' if rate_value['당좌비율'][3] < 100 else ''}>{comma(rate_value['당좌비율'][3], decimal=True)}</span></td>
                         </tr>
                         <tr>
                             <th>부채비율</th>
-                            <td><span{' class="good-value"' if rate_value['부채비율'][0] <= 150 else ' class="bad-value"' if rate_value['부채비율'][0] >= 200 else ''}>{comma(rate_value['부채비율'][0])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['부채비율'][1] <= 150 else ' class="bad-value"' if rate_value['부채비율'][1] >= 200 else ''}>{comma(rate_value['부채비율'][1])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['부채비율'][2] <= 150 else ' class="bad-value"' if rate_value['부채비율'][2] >= 200 else ''}>{comma(rate_value['부채비율'][2])}</span></td>
-                            <td><span{' class="good-value"' if rate_value['부채비율'][3] <= 150 else ' class="bad-value"' if rate_value['부채비율'][3] >= 200 else ''}>{comma(rate_value['부채비율'][3])}</span></td>
+                            <td><span{' class="good-value"' if rate_value['부채비율'][0] <= 150 else ' class="bad-value"' if rate_value['부채비율'][0] >= 200 else ''}>{comma(rate_value['부채비율'][0], decimal=True)}</span></td>
+                            <td><span{' class="good-value"' if rate_value['부채비율'][1] <= 150 else ' class="bad-value"' if rate_value['부채비율'][1] >= 200 else ''}>{comma(rate_value['부채비율'][1], decimal=True)}</span></td>
+                            <td><span{' class="good-value"' if rate_value['부채비율'][2] <= 150 else ' class="bad-value"' if rate_value['부채비율'][2] >= 200 else ''}>{comma(rate_value['부채비율'][2], decimal=True)}</span></td>
+                            <td><span{' class="good-value"' if rate_value['부채비율'][3] <= 150 else ' class="bad-value"' if rate_value['부채비율'][3] >= 200 else ''}>{comma(rate_value['부채비율'][3], decimal=True)}</span></td>
                         </tr>
                         <tr>
                             <th>유보율</th>
-                            <td>{comma(rate_value['유보율'][0])}</td>
-                            <td>{comma(rate_value['유보율'][1])}</td>
-                            <td>{comma(rate_value['유보율'][2])}</td>
-                            <td>{comma(rate_value['유보율'][3])}</td>
+                            <td>{comma(rate_value['유보율'][0], decimal=True)}</td>
+                            <td>{comma(rate_value['유보율'][1], decimal=True)}</td>
+                            <td>{comma(rate_value['유보율'][2], decimal=True)}</td>
+                            <td>{comma(rate_value['유보율'][3], decimal=True)}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1498,25 +1545,25 @@ def get_html(gicode) :
                     <tbody>
                         <tr>
                             <th>올해 예상</th>
-                            <td>{comma(yper)}</td>
+                            <td>{comma(yper, 2)}</td>
                             <td>{comma(cp_value(yprofit, yper, sc)['value'])}{'억원' if cp_value(yprofit, yper, sc)['value'] != '' else ''}</td>
                             <td>{comma(cp_value(yprofit, yper, sc)['price'])}{'원' if cp_value(yprofit, yper, sc)['price'] != '' else ''}</td>
                         </tr>
                         <tr>
                             <th>가중 평균</th>
-                            <td>{comma(ywper)}</td>
+                            <td>{comma(ywper, 2)}</td>
                             <td>{comma(cp_value(yprofit, ywper, sc)['value'])}억원</td>
                             <td>{comma(cp_value(yprofit, ywper, sc)['price'])}원</td>
                         </tr>
                         <tr>
                             <th><a href="{nv_url}" target="_blank">업종 (NV)</a></th>
-                            <td>{comma(nv_per)}</td>
+                            <td>{comma(nv_per, 2)}</td>
                             <td>{comma(cp_value(yprofit, nv_per, sc)['value'])}억원</td>
                             <td>{comma(cp_value(yprofit, nv_per, sc)['price'])}원</td>
                         </tr>
                         <tr>
                             <th><a href="{cg_url}" target="_blank">업종 (CG)</a></th>
-                            <td>{comma(cg_per)}</td>
+                            <td>{comma(cg_per, 2)}</td>
                             <td>{comma(cp_value(yprofit, cg_per, sc)['value'])}억원</td>
                             <td>{comma(cp_value(yprofit, cg_per, sc)['price'])}원</td>
                         </tr>
@@ -1698,11 +1745,11 @@ def get_html(gicode) :
                     </div>
                     <div class="info-cell">
                         <div class="cell-head">예상 ROE</div>
-                        <div class="cell-desc">{comma(e_roe) if e_roe != None else ''}</div>
+                        <div class="cell-desc">{comma(e_roe, 2) if e_roe != None else ''}</div>
                     </div>
                     <div class="info-cell">
                         <div class="cell-head">가중 ROE</div>
-                        <div class="cell-desc">{comma(w_roe)}</div>
+                        <div class="cell-desc">{comma(w_roe, 2)}</div>
                     </div>
                 </div>
             </div>
@@ -1915,9 +1962,7 @@ def get_html(gicode) :
     <!-- AI 분석 -->
     <div class="report-title">요약 (From. AI)</div>
     <!-- 여기에 ChatGPT 내용 삽입 -->
-    <div class="fs-ai-summary">
-    <!-- 여기에 ChatGPT 종합 정리 삽입-->
-    </div>
+    
     <!-- AI 분석 END -->
     '''
     re_date = sdate.split(' ')[0]
@@ -1943,6 +1988,7 @@ def for_chatgpt(gicode) :
     fsy.set_index('year_chk', inplace=True)
     fsy['영업이익률'] = (fsy['영업이익']/fsy['매출액'])*100
     fsy['당기순이익률'] = (fsy['당기순이익']/fsy['매출액'])*100
+    fsy['자본잠식률'] = ((fsy['자본금']-fsy['자본총계'])/fsy['자본금'])*100
     fsy.rename(columns={'PER수정주가': 'PER', 'PBR수정주가': 'PBR'}, inplace=True)
 
     # 분기재무제표
@@ -1950,6 +1996,7 @@ def for_chatgpt(gicode) :
     fsq.set_index('year_chk', inplace=True)
     fsq['영업이익률'] = (fsq['영업이익']/fsq['매출액'])*100
     fsq['당기순이익률'] = (fsq['당기순이익']/fsq['매출액'])*100
+    fsq['자본잠식률'] = ((fsq['자본금']-fsq['자본총계'])/fsq['자본금'])*100
     fsq.rename(columns={'PER수정주가': 'PER', 'PBR수정주가': 'PBR'}, inplace=True)
 
     # 기준 컬럼

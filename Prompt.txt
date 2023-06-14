@@ -1,14 +1,19 @@
 https://app.noteable.io/f/1fa893e7-6240-4276-8e4d-e18882fa2036/Stock_analyze_for_blog.ipynb
-- 주식을 분석하는 애널리스트로서 대답해야한다.
-- 이 노트북에 출력된 데이터는 주식에 대한 데이터이다.
-- 데이터프레임에 index에 '(E)'가 들어간 것은 예상 수치이다.
-- 출력된 결과 중 '연간재무제표', '분기재무제표' 데이터에서는 '매출액', '영업이익률', '당기순이익률' 컬럼에 대해서 분석하고 추이가 어떤지, 부정적인지, 긍정적인지 분석한다.
-- '재무비율', '현금흐름표'도 각 컬럼별로 분석한다.
-- 출력된 결과 중 '영업이익*PER 적정주가 계산'은 현재주가와 비교해서 저평가인지, 고평가인지 구분하고, 매수의견에 대해 작성한다.
-- 출력된 결과 중 SRIM 적정주가 계산'은 '초과이익 지속'인 경우에 대해서만 현재 주가와 비교해서 저평가인지, 고평가인지 구분하고 매수의견에 대해 작성한다.
-- 채팅상에 데이터는 출력하지 않는다.
-- 분석한 최종 결과는 HTML 코드 블럭으로 작성하며, 아래 예시를 참고해서 출력한다.
-- example)
+이 노트북에 출력된 데이터는 주식에 대한 데이터이며, 아래 조건에 맞게 작성한다.
+[CONDITION]
+1. 주식 전문가로서 작성한다.
+2. 데이터는 출력하지 않는다.
+3. 데이터프레임에 index에 '(E)'가 들어간 것은 예상 수치이다.
+4. 데이터와 출력된 텍스트를 참고하여 분석한다.
+5. 출력된 결과 중 '연간재무제표', '분기재무제표' 데이터에서는 '매출액', '영업이익률', '당기순이익률' 컬럼에 대해서 분석하고 추이가 어떤지, 부정적인지, 긍정적인지 분석한다.
+6. '재무비율', '현금흐름표'도 각 컬럼별로 분석하며, 올해와 작년도 데이터와의 비교를 중점적으로 작성할 것.
+7. '분기재무제표'의 경우 1분기 데이터만 있다면, 전년도 데이터와는 비교하지 말고 분석할 것.
+8. 출력된 결과 중 '영업이익*PER 적정주가 계산'은 현재주가와 비교해서 저평가인지, 고평가인지 구분하고, 매수의견에 대해 작성한다.
+9. 출력된 결과 중 'SRIM 적정주가 계산'은 '초과이익 지속', '초과이익 10% 감소', '초과이익 20% 감소', 인 경우에 대해서만 현재 주가와 비교한다.
+10. 각 분석 결과는 약 2~3줄 정도로만 작성해준다.
+11. 종합한 요약 내용은 4~5줄 정도로 작성해준다.
+12. 결과는 ANSWER EXAMPLE처럼 작성해준다.
+[ANSWER EXAMPLE]
 <div class="fs-ai-analyze">
 	<div class="fs-ai-head">연간재무제표</div>
 	<div class="fs-ai-desc">
@@ -21,30 +26,8 @@ https://app.noteable.io/f/1fa893e7-6240-4276-8e4d-e18882fa2036/Stock_analyze_for
 		[매출액, 영업이익률, 당기순이익률에 대한 종합적인 분석 내용]
 	</div>
 </div>
-
-
-
-## English
-https://app.noteable.io/f/1fa893e7-6240-4276-8e4d-e18882fa2036/Stock_analyze_for_blog.ipynb
-- You should answer as an analyst who analyzes stocks.
-- The data output in this notebook is for a stock.
-- The data frames with an '(E)' in the index are expected values.
-- In the 'Annual Financial Statement' and 'Quarterly Financial Statement' data, analyze the columns 'Sales', 'Operating Margin', and 'Net Profit Margin' and analyze whether they are trending, negative, or positive.
-- 'Financial ratios' and 'Cash flow' are also analyzed for each column.
-- Among the output results, 'Operating Profit*PER Fair Price Calculation' is used to determine whether the stock is undervalued or overvalued compared to the current stock price, and write a buy recommendation.
-- Among the output results, 'SRIM fair value calculation' shows whether the stock is undervalued or overvalued compared to the current stock price and writes a buy recommendation only for the case of 'Excessive profit continuation'.
-- It does not output data to the chat.
-- The final result of the analysis is written as an HTML code block, and is displayed using the example below.
-- example)
-<div class="fs-ai-analyze">
-	<div class="fs-ai-head">연간재무제표</div>
-	<div class="fs-ai-desc">
-		[매출액, 영업이익률, 당기순이익률에 대한 종합적인 분석 내용]
-	</div>
-</div>
-<div class="fs-ai-analyze">
-	<div class="fs-ai-head">분기재무제표</div>
-	<div class="fs-ai-desc">
-		[매출액, 영업이익률, 당기순이익률에 대한 종합적인 분석 내용]
-	</div>
+...
+<div class="fs-ai-summary">
+[모든 분석 결과를 종합한 요약 내용]
+[분석 내용은 참고 내용이며, 모든 투자의 책임은 본인에게 있다는 주의글 작성]
 </div>
