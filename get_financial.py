@@ -487,9 +487,12 @@ def set_weight_aver(*values) :
         weight+=1
     
     molecule = sum(weight_values)
-    result = molecule/denominator
-    result = round(result, 2)
-    return result
+    try :
+        result = molecule/denominator
+        result = round(result, 2)
+        return result
+    except :
+        return None
 
 # SRIM Calculator
 def SRIM(gicode) :
@@ -880,10 +883,10 @@ def fs_table(base, txt) :
                         </tr>
                         <tr>
                             <th>자본잠식률</th>
-                            <td{' class="weight-value"' if (cpt_total['c1'][1] or cpt['c1'][1]) else ''}><span{' class="bad-value"' if erosion_rate[0] != None and erosion_rate[0] > 0 else ''}>{comma(erosion_rate[0], 2)}</span></td>
-                            <td{' class="weight-value"' if (cpt_total['c2'][1] or cpt['c2'][1]) else ''}><span{' class="bad-value"' if erosion_rate[1] != None and erosion_rate[1] > 0 else ''}>{comma(erosion_rate[1], 2)}</span></td>
-                            <td{' class="weight-value"' if (cpt_total['c3'][1] or cpt['c3'][1]) else ''}><span{' class="bad-value"' if erosion_rate[2] != None and erosion_rate[2] > 0 else ''}>{comma(erosion_rate[2], 2)}</span></td>
-                            <td{' class="weight-value"' if (cpt_total['c4'][1] or cpt['c4'][1]) else ''}><span{' class="bad-value"' if erosion_rate[3] != None and erosion_rate[3] > 0 else ''}>{comma(erosion_rate[3], 2)}</span></td>
+                            <td{' class="weight-value"' if (cpt_total['c1'][1] or cpt['c1'][1]) else ''}><span{' class="bad-value"' if erosion_rate[0] != None and erosion_rate[0] >= 0 else ''}>{'' if erosion_rate[0] == None else comma(erosion_rate[0], 2) if erosion_rate[0] >= 0 else '정상'}</span></td>
+                            <td{' class="weight-value"' if (cpt_total['c2'][1] or cpt['c2'][1]) else ''}><span{' class="bad-value"' if erosion_rate[1] != None and erosion_rate[1] >= 0 else ''}>{'' if erosion_rate[1] == None else comma(erosion_rate[1], 2) if erosion_rate[1] >= 0 else '정상'}</span></td>
+                            <td{' class="weight-value"' if (cpt_total['c3'][1] or cpt['c3'][1]) else ''}><span{' class="bad-value"' if erosion_rate[2] != None and erosion_rate[2] >= 0 else ''}>{'' if erosion_rate[2] == None else comma(erosion_rate[2], 2) if erosion_rate[2] >= 0 else '정상'}</span></td>
+                            <td{' class="weight-value"' if (cpt_total['c4'][1] or cpt['c4'][1]) else ''}><span{' class="bad-value"' if erosion_rate[3] != None and erosion_rate[3] >= 0 else ''}>{'' if erosion_rate[3] == None else comma(erosion_rate[3], 2) if erosion_rate[3] >= 0 else '정상'}</span></td>
                         </tr>
                         <tr>
                             <th>ROE</th>
@@ -1551,9 +1554,9 @@ def get_html(gicode) :
                         </tr>
                         <tr>
                             <th>가중 평균</th>
-                            <td>{comma(ywper, 2)}</td>
-                            <td>{comma(cp_value(yprofit, ywper, sc)['value'])}억원</td>
-                            <td>{comma(cp_value(yprofit, ywper, sc)['price'])}원</td>
+                            <td>{comma(ywper, 2) if ywper != None else ''}</td>
+                            <td>{comma(cp_value(yprofit, ywper, sc)['value']) if ywper != None else ''}{'억원' if ywper != None else ''}</td>
+                            <td>{comma(cp_value(yprofit, ywper, sc)['price']) if ywper != None else ''}{'원' if ywper != None else ''}</td>
                         </tr>
                         <tr>
                             <th><a href="{nv_url}" target="_blank">업종 (NV)</a></th>
@@ -1597,7 +1600,7 @@ def get_html(gicode) :
                             labels: ['올해 예상', '가중 평균', '업종 PER(NV)', '업종 PER(CG)', '별도 조정'],
                             datasets: [{{
                                 label: '적정주가',
-                                data: [{'null' if cp_value(yprofit, yper, sc)['price'] == '' else cp_value(yprofit, yper, sc)['price']}, {cp_value(yprofit, ywper, sc)['price']}, {cp_value(yprofit, nv_per, sc)['price']}, {cp_value(yprofit, cg_per, sc)['price']}, calcPer],
+                                data: [{'null' if cp_value(yprofit, yper, sc)['price'] == '' else cp_value(yprofit, yper, sc)['price']}, {cp_value(yprofit, ywper, sc)['price']  if ywper != None else 'null'}, {cp_value(yprofit, nv_per, sc)['price']}, {cp_value(yprofit, cg_per, sc)['price']}, calcPer],
                                 backgroundColor: 'rgba(16, 163, 127, 0.2)',
                                 borderColor: 'rgba(16, 163, 127, 1)',
                                 borderWidth: 1,
@@ -2038,14 +2041,17 @@ def for_chatgpt(gicode) :
     # PER 계산
     # 올해 예상 PER
     estimated_per = annual_financial_statements.iloc[3]['PER']
-
+    if estimated_per == None :
+        estimated_per = np.nan
     # 최근 가중 PER
     before_per = list(annual_financial_statements.iloc[:3]['PER'].values)
     before_per = [i for i in before_per if i != None]
 
     # 가중 PER
     weighted_per = set_weight_aver(*before_per)
-
+    if weighted_per == None :
+        weighted_per = np.nan
+    
     # 영업이익
     estimated_profit = annual_financial_statements.iloc[3]['영업이익']
 
@@ -2066,7 +2072,7 @@ def for_chatgpt(gicode) :
         '현재주가': [current_price],
         '영업이익': [estimated_profit/100000000],
         '영업이익_구분': [profit_flag],
-        '예상PER_적정주가' : [round((estimated_profit*estimated_per)/common) if not (np.isnan(estimated_per))  else None],
+        '예상PER_적정주가' : [round((estimated_profit*estimated_per)/common) if not (np.isnan(estimated_per)) else None],
         '가중PER_적정주가' : [round((estimated_profit*weighted_per)/common) if not (np.isnan(weighted_per))  else None],
     }
 
