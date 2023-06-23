@@ -14,14 +14,15 @@ https://app.noteable.io/f/1fa893e7-6240-4276-8e4d-e18882fa2036/Stock_analyze_for
 11. 종합한 요약 내용은 4~5줄 정도로 작성해준다.
 12. 결과는 ANSWER EXAMPLE처럼 작성해준다.
 [ANSWER EXAMPLE]
-<div class="fs-ai-analyze">
-	<div class="fs-ai-head">연간재무제표</div>
+<div class="report-title">요약 (From. AI)</div>
+<div class="fs-ai-analyze" id="fs-summary-1">
+	<div class="fs-ai-head">연간재무제표 <a href="#fs-table-1">🔎</a></div>
 	<div class="fs-ai-desc">
 		[매출액, 영업이익률, 당기순이익률에 대한 종합적인 분석 내용]
 	</div>
 </div>
-<div class="fs-ai-analyze">
-	<div class="fs-ai-head">분기재무제표</div>
+<div class="fs-ai-analyze" id="fs-summary-2">
+	<div class="fs-ai-head">분기재무제표  <a href="#fs-table-2">🔎</a></div>
 	<div class="fs-ai-desc">
 		[매출액, 영업이익률, 당기순이익률에 대한 종합적인 분석 내용]
 	</div>

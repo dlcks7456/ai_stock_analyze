@@ -811,7 +811,7 @@ def fs_table(base, txt) :
     html_fs = f'''
             <!-- {txt} -->
             <div class="fs-head">
-                <div class="fs-title">{txt}</div>
+                <div class="fs-title" id="fs-table-{1 if txt == '연간' else 2}">{txt}</div>
                 <div class="fs-unit">단위: 억원, %, 배</div>
             </div>
             <div class="fs-div">
@@ -1151,7 +1151,13 @@ def get_html(gicode) :
     # HTML 재무제표(연간/분기)
     html_fs_table = f'''
     {fs_table(sfsy, '연간')}
+    <div class="goto-summary">
+        <a title="연간재무제표 요약 바로가기" href="#fs-summary-1">연간재무제표 요약 바로가기</a>
+    </div>
     {fs_table(sfsq, '분기')}
+    <div class="goto-summary">
+        <a title="분기재무제표 요약 바로가기" href="#fs-summary-2">분기재무제표 요약 바로가기</a>
+    </div>
     '''
 
     # HTML 재무상태표
@@ -1223,7 +1229,7 @@ def get_html(gicode) :
     html_fs_ratio = f'''
             <!-- 재무비율 -->
             <div class="fs-head" style="margin-top: 20px">
-                <div class="fs-title">재무비율</div>
+                <div class="fs-title" id="fs-table-3">재무비율</div>
                 <div class="fs-unit">단위: %, 억원</div>
             </div>
             <div class="fs-div">
@@ -1340,6 +1346,9 @@ def get_html(gicode) :
                     }});
                 </script>
             </div>
+            <div class="goto-summary">
+                <a title="재무비율 요약 바로가기" href="#fs-summary-3">재무비율 요약 바로가기</a>
+            </div>
             <!-- 재무상태표/재무비율 Chart END -->'''
     
     # HTML 현금흐름표
@@ -1375,7 +1384,7 @@ def get_html(gicode) :
     html_cash = f'''
             <!-- 현금흐름표 -->
             <div class="fs-head" style="margin-top: 20px">
-                <div class="fs-title">현금흐름표</div>
+                <div class="fs-title" id="fs-table-4">현금흐름표</div>
                 <div class="fs-unit">단위: 억원</div>
             </div>
             <div class="fs-div">
@@ -1425,6 +1434,9 @@ def get_html(gicode) :
                     </tbody>
                 </table>
             </div>
+            <div class="goto-summary">
+                <a title="현금흐름표 요약 바로가기" href="#fs-summary-4">현금흐름표 요약 바로가기</a>
+            </div>
             <!-- 현금흐름표 END -->
             <div class="a-line"></div>
             <br/>
@@ -1467,7 +1479,7 @@ def get_html(gicode) :
             <!-- 영업이익*PER 적정 주가 계산 -->
             <div class="fs-head fs-with-q" style="margin-top: 20px;margin-bottom: 10px">
                 <div class="fs-with-q">
-                    <div class="fs-title">영업이익*PER</div>
+                    <div class="fs-title" id="fs-table-5">영업이익*PER</div>
                     <div>
                         <a href="https://waymond.tistory.com/40" target="_blank" title="적정주가 간단하게 계산해보기">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -1506,7 +1518,7 @@ def get_html(gicode) :
             <!-- 영업이익*PER 적정 주가 계산 -->
             <div class="fs-head fs-with-q" style="margin-top: 20px;margin-bottom: 10px">
                 <div class="fs-with-q">
-                    <div class="fs-title">영업이익*PER</div>
+                    <div class="fs-title" id="fs-table-5">영업이익*PER</div>
                     <div>
                         <a href="https://waymond.tistory.com/40" target="_blank" title="적정주가 간단하게 계산해보기">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -1694,6 +1706,9 @@ def get_html(gicode) :
                     perHandler(10);
                 </script>
             </div>
+            <div class="goto-summary">
+                <a title="영업이익*PER 요약 바로가기" href="#fs-summary-5">적정주가 계산 요약 바로가기</a>
+            </div>
             <!-- 영업이익*PER Chart END -->'''
 
     # HTML SRIM
@@ -1716,7 +1731,7 @@ def get_html(gicode) :
             <!-- SRIM 계산 -->
             <div class="fs-head fs-with-q" style="margin-top: 20px;margin-bottom: 10px">
                 <div class="fs-with-q">
-                    <div class="fs-title">SRIM</div>
+                    <div class="fs-title" id="fs-table-6">SRIM</div>
                     <div>
                         <a href="https://waymond.tistory.com/41" target="_blank" title="주식투자 전략:SRIM으로 적정주가 계산">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -1760,7 +1775,7 @@ def get_html(gicode) :
                 <div class="srim-roe-head">
                     <div class="srim-roe {'roe-selected' if e_roe != None else 'fs-hidden'}">예상 ROE</div>
                     <div class="srim-roe {'roe-selected' if e_roe == None else ''}">가중 ROE</div>
-                    <div class="srim-roe-info">기준 ROE 선택</div>
+                    <div class="srim-roe-info">{'예상 ROE가 없습니다. 가중 ROE로만 제공됩니다.' if e_roe == None else '기준 ROE 선택'}</div>
                 </div>
                 <div class="fs-div srim-result" style="margin-top: 10px">
                     <table class="fs-data srim-table{' post-fs-hidden' if e_value == None else ''}">
@@ -1945,6 +1960,9 @@ def get_html(gicode) :
             }});
         </script>
         <!-- SRIM Chart END -->
+        <div class="goto-summary">
+            <a title="SRIM 요약 바로가기" href="#fs-summary-6">SRIM 계산 요약 바로가기</a>
+        </div>
         <div class="a-line"></div>'''
     # HTML Body (END)
     html_fs_body = f'''
@@ -1961,9 +1979,31 @@ def get_html(gicode) :
     {html_srim}
         </div>
     </div>
+    <script type="text/javascript">
+    const links = document.querySelectorAll('.goto-summary a');
+
+    links.forEach(link => {{
+    link.addEventListener('click', function(e) {{
+        e.preventDefault();
+
+        const target = document.querySelector(this.getAttribute('href'));
+        if( target === null || target === undefined ){{
+            return;
+        }}
+
+        target.scrollIntoView({{ behavior: 'smooth' }});
+
+        target.classList.add('summary-focus');
+
+        setTimeout(() => {{
+            target.classList.remove('summary-focus');
+        }}, 2000);
+    }});
+    }});
+    </script>
     <!-- END -->
     <!-- AI 분석 -->
-    <div class="report-title">요약 (From. AI)</div>
+
     <!-- 여기에 ChatGPT 내용 삽입 -->
     
     <!-- AI 분석 END -->
@@ -1975,8 +2015,13 @@ def get_html(gicode) :
     with open(file_name, 'w') as f :
         f.write(html_fs_body)
     print(f'{file_name} file has been created.')
-    print(f'[A.I] {sname}:주식 재무 분석 & 적정주가 계산_{re_date}')
-    return file_name
+    post_name = f'[A.I] {sname}:주식 재무 분석 & 적정주가 계산_{re_date}'
+    print(post_name)
+    return {
+        'file_name': file_name,
+        'stock_name': sname,
+        'post_name': post_name
+    }
 
 
 
@@ -2136,4 +2181,48 @@ def for_chatgpt(gicode) :
         'SRIM_적정주가_계산_결과': SRIM_analysis_results
     }
     
+
+
+def create_post(post_info) :
+    ACCESS_TOKEN = '3ea02f9b4ad8cb71e53023d8195d6436_e5ec86f3a2b9d824d735bb4f4d025389'
+
+    # 블로그 정보
+    BLOG_NAME = 'waymond'
+
+    # 글 작성에 필요한 정보
+    title = post_info['post_name']
+    stock_name = post_info['stock_name']
+    tags = [
+        stock_name, 
+        f'{stock_name} 투자'
+        f'{stock_name} 재무제표', 
+        f'{stock_name} 재무제표 웹스크래핑', 
+        f'{stock_name} 적정주가', 
+        f'{stock_name} SRIM',
+        f'{stock_name} 분석',
+        f'AI 주식 분석',
+        f'주식투자'
+    ]
+    tags = ', '.join(tags)
+
+    # API 요청 URL
+    url = f'https://www.tistory.com/apis/post/write'
+
+    # 요청 파라미터
+    params = {
+        'access_token': ACCESS_TOKEN,
+        'output': 'json',
+        'blogName': BLOG_NAME,
+        'title': title,
+        'content': '<!-- 웹스크래핑 자료 붙여 넣기 -->',
+        'tag': tags,
+        'visibility': 0  # 0: 비공개, 1: 보호, 3: 발행
+    }
+
+    # API 요청
+    response = requests.post(url, params=params)
+
+    url = response.json()['tistory']['url']
+
+    return url
 
