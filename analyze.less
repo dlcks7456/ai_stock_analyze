@@ -351,6 +351,7 @@ html {
     background-color: fade(@basic-color, 20%);
     font-size: 0.8rem !important;
     transition: background-color 0.5s, color 0.5s;
+
     .box-shadow-style();
 
     &:hover {
@@ -376,11 +377,11 @@ html {
     justify-content: end;
     margin-top: 20px;
     margin-bottom: 60px;
+    
     a {
         .a-btn();
     }
 }
-
 
 .fs-ai-analyze {
     .max-width-set();
@@ -396,7 +397,6 @@ html {
         &:before {
             content: '· ';
         }
-
         a {
             text-decoration: none;
         }
@@ -437,6 +437,46 @@ html {
     }
 }
 
+@baseColor: #007bff;
+@hoverColor: #0056b3;
+@backgroundColor: #f6f6f6;
+
+.fs-mypost-list {
+    .max-width-set();
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    background-color: #ffffff;
+    padding-bottom: 5px;
+    margin-bottom: 20px;
+    
+    .fs-mypost {
+        font-weight: 700;
+        color: #333333;
+        margin-bottom: 10px;
+        font-size: 1.3em;
+        padding: 10px;
+    }
+
+    .fs-mypost-link {
+        margin-bottom: 10px;
+        margin-left: 10px;
+        transition: background-color 0.3s ease;
+
+        &:hover {
+            background-color: @backgroundColor;
+        }
+
+        a {
+            text-decoration: none;
+            color: @baseColor;
+            font-size: 1em;
+            
+            &:hover {
+                color: @hoverColor;
+            }
+        }
+    }
+}
 
 
 @media @mobile {

@@ -1141,8 +1141,8 @@ def get_html(gicode) :
         </div>
     </div>
     <div class="fs-btn-a">
-        <a title="NAVER 증권:{sname}" target="_blank" href="https://finance.naver.com/item/main.nhn?code={gicode}">NAVER 증권 바로가기</a>
-        <a title="Company Guide:{sname}" target="_blank" href="http://comp.fnguide.com/SVO2/ASP/SVD_main.asp?pGB=1&gicode=A{gicode}&cID=&MenuYn=Y&ReportGB=&NewMenuID=11&stkGb=&strResearchYN=">Company Guide 바로가기</a>
+        <a title="NAVER 증권:{sname}" href="https://finance.naver.com/item/main.nhn?code={gicode}">NAVER 증권 바로가기</a>
+        <a title="Company Guide:{sname}" href="http://comp.fnguide.com/SVO2/ASP/SVD_main.asp?pGB=1&gicode=A{gicode}&cID=&MenuYn=Y&ReportGB=&NewMenuID=11&stkGb=&strResearchYN=">Company Guide 바로가기</a>
     </div>
     <!-- 종목 기본 정보 END-->
     <div class="a-line"></div>
@@ -1481,7 +1481,7 @@ def get_html(gicode) :
                 <div class="fs-with-q">
                     <div class="fs-title" id="fs-table-5">영업이익*PER</div>
                     <div>
-                        <a href="https://waymond.tistory.com/40" target="_blank" title="적정주가 간단하게 계산해보기">
+                        <a href="https://waymond.tistory.com/40" title="적정주가 간단하게 계산해보기">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
                         </svg>                  
@@ -1520,7 +1520,7 @@ def get_html(gicode) :
                 <div class="fs-with-q">
                     <div class="fs-title" id="fs-table-5">영업이익*PER</div>
                     <div>
-                        <a href="https://waymond.tistory.com/40" target="_blank" title="적정주가 간단하게 계산해보기">
+                        <a href="https://waymond.tistory.com/40" title="적정주가 간단하게 계산해보기">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
                         </svg>                  
@@ -1571,13 +1571,13 @@ def get_html(gicode) :
                             <td>{comma(cp_value(yprofit, ywper, sc)['price']) if ywper != None else ''}{'원' if ywper != None else ''}</td>
                         </tr>
                         <tr>
-                            <th><a href="{nv_url}" target="_blank">업종 (NV)</a></th>
+                            <th><a href="{nv_url}">업종 (NV)</a></th>
                             <td>{comma(nv_per, 2)}</td>
                             <td>{comma(cp_value(yprofit, nv_per, sc)['value'])}억원</td>
                             <td>{comma(cp_value(yprofit, nv_per, sc)['price'])}원</td>
                         </tr>
                         <tr>
-                            <th><a href="{cg_url}" target="_blank">업종 (CG)</a></th>
+                            <th><a href="{cg_url}">업종 (CG)</a></th>
                             <td>{comma(cg_per, 2)}</td>
                             <td>{comma(cp_value(yprofit, cg_per, sc)['value'])}억원</td>
                             <td>{comma(cp_value(yprofit, cg_per, sc)['price'])}원</td>
@@ -1733,7 +1733,7 @@ def get_html(gicode) :
                 <div class="fs-with-q">
                     <div class="fs-title" id="fs-table-6">SRIM</div>
                     <div>
-                        <a href="https://waymond.tistory.com/41" target="_blank" title="주식투자 전략:SRIM으로 적정주가 계산">
+                        <a href="https://waymond.tistory.com/41" title="주식투자 전략:SRIM으로 적정주가 계산">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
                         </svg>                  
@@ -2007,6 +2007,45 @@ def get_html(gicode) :
     <!-- 여기에 ChatGPT 내용 삽입 -->
     
     <!-- AI 분석 END -->
+    <div class="a-line"></div>
+    <div class="fs-mypost-list">
+        <div class="fs-mypost">📗 관련 포스트</div>
+        <div class="fs-mypost-link">
+            <a href="https://waymond.tistory.com/14">
+                <div>주식 초보자 마인드 셋</div>
+            </a>
+        </div>
+        <div class="fs-mypost-link">
+            <a href="https://waymond.tistory.com/16">
+                <div>상장폐지 조건</div>
+            </a>
+        </div>
+        <div class="fs-mypost-link">
+            <a href="https://waymond.tistory.com/22">
+                <div>기본적 분석/기술적 분석</div>
+            </a>
+        </div>
+        <div class="fs-mypost-link">
+            <a href="https://waymond.tistory.com/23">
+                <div>재무제표에 대해서</div>
+            </a>
+        </div>
+        <div class="fs-mypost-link">
+            <a href="https://waymond.tistory.com/27">
+                <div>재무제표에서 꼭 확인해야 하는 것들</div>
+            </a>
+        </div>
+        <div class="fs-mypost-link">
+            <a href="https://waymond.tistory.com/40">
+                <div>간단한 적정주가 계산:영업이익*PER</div>
+            </a>
+        </div>
+        <div class="fs-mypost-link">
+            <a href="https://waymond.tistory.com/41">
+                <div>SRIM으로 적정주가 계산/저평가 주식</div>
+            </a>
+        </div>
+    </div>
     '''
     re_date = sdate.split(' ')[0]
     file_date = re_date
@@ -2216,6 +2255,7 @@ def create_post(post_info) :
         'title': title,
         'content': '<!-- 웹스크래핑 자료 붙여 넣기 -->',
         'tag': tags,
+        'category': '1149858',
         'visibility': 0  # 0: 비공개, 1: 보호, 3: 발행
     }
 
@@ -2223,6 +2263,7 @@ def create_post(post_info) :
     response = requests.post(url, params=params)
 
     url = response.json()['tistory']['url']
-
+    status = response.json()['tistory']['status']
+    print(f'Response status : {status}')
     return url
 
