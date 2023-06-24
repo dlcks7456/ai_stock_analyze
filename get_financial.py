@@ -988,7 +988,7 @@ def get_html(gicode) :
 
     same_pers = web_data['same_per'] # 업종 PER
 
-    bbb = web_data['bbb'] # BBB- 할인율
+    bbb = float(web_data['bbb']) # BBB- 할인율
 
     # HTML HEAD
     html_head = '''
@@ -1080,7 +1080,7 @@ def get_html(gicode) :
     <!-- 안내사항 -->
     <div class="before-start">
         <ul>
-            <li>Company Guide/NAVER 증권에서 <b>웹스크래핑한 데이터</b>입니다.</li>
+            <li>FnGuide/NAVER 증권에서 <b>웹스크래핑한 데이터</b>입니다.</li>
             <li>모바일에서도 확인은 가능하지만 PC가 더 편리할 수 있습니다.</li>
             <li>이 포스트는 <b>{sdate} 기준</b>입니다. <b>재무 데이터는 이후 변경될 수 있습니다.</b></li>
             <li><b>요약은 AI가 작성</b>했습니다.</li>
@@ -1093,7 +1093,26 @@ def get_html(gicode) :
         </ul>
     </div>
     <div class="a-line"></div>
-
+    <div class="a-line"></div>
+    <div class="fs-mypost-list">
+        <div class="fs-mypost">🚀 바로가기</div>
+        <div class="fs-mypost-link">
+            <a href="#finance-datas">
+                <div>재무정보</div>
+            </a>
+        </div>
+        <div class="fs-mypost-link">
+            <a href="#fs-calc-result">
+                <div>적정주가 계산</div>
+            </a>
+        </div>
+        <div class="fs-mypost-link">
+            <a href="#fs-summary-ai">
+                <div>요약(From. AI)</div>
+            </a>
+        </div>
+    </div>
+    <div class="a-line"></div>
     '''.format(sname=sname, sdate=sdate.split(' ')[0])
 
     # HTML 종목 기본 정보
@@ -1148,7 +1167,7 @@ def get_html(gicode) :
     </div>
     <div class="fs-btn-a">
         <a title="NAVER 증권:{sname}" href="https://finance.naver.com/item/main.nhn?code={gicode}">NAVER 증권 바로가기</a>
-        <a title="Company Guide:{sname}" href="http://comp.fnguide.com/SVO2/ASP/SVD_main.asp?pGB=1&gicode=A{gicode}&cID=&MenuYn=Y&ReportGB=&NewMenuID=11&stkGb=&strResearchYN=">Company Guide 바로가기</a>
+        <a title="FnGuide:{sname}" href="http://comp.fnguide.com/SVO2/ASP/SVD_main.asp?pGB=1&gicode=A{gicode}&cID=&MenuYn=Y&ReportGB=&NewMenuID=11&stkGb=&strResearchYN=">FnGuide 바로가기</a>
     </div>
     <!-- 종목 기본 정보 END-->
     <div class="a-line"></div>
@@ -1376,7 +1395,7 @@ def get_html(gicode) :
     cash_comb_name = {
         '+/-/-' : '<span class="good-value">우량</span>',
         '+/-/+' : '<span class="good-value">성장</span>',
-        '+/+/+' : '성장',
+        '+/+/+' : '과도기',
         '+/+/-' : '과도기',
         '-/-/-' : '재활',
         '-/-/+' : '재활',
@@ -1479,7 +1498,7 @@ def get_html(gicode) :
     if yprofit < 0 :
         html_per = f'''
             <!-- 적정주가 계산 파트 -->
-            <div class="report-title">적정주가 계산</div>
+            <div class="report-title" id="fs-calc-result">적정주가 계산</div>
             <!-- 영업이익*PER 적정 주가 계산 -->
             <div class="fs-head fs-with-q" style="margin-top: 20px;margin-bottom: 10px">
                 <div class="fs-with-q">
@@ -1518,7 +1537,7 @@ def get_html(gicode) :
 
     html_per = f'''
             <!-- 적정주가 계산 파트 -->
-            <div class="report-title">적정주가 계산</div>
+            <div class="report-title" id="fs-calc-result">적정주가 계산</div>
             <!-- 영업이익*PER 적정 주가 계산 -->
             <div class="fs-head fs-with-q" style="margin-top: 20px;margin-bottom: 10px">
                 <div class="fs-with-q">
@@ -1536,7 +1555,7 @@ def get_html(gicode) :
                 <div class="info">
                     <div class="info-cell">
                         <div class="cell-head">영업이익</div>
-                        <div class="cell-desc{' weight-value' if yp_flag else ''}">{comma(yprofit)}억원</div>
+                        <div class="cell-desc{' weight-value' if yp_flag else ''}">{comma(yprofit, decimal=True)}억원</div>
                     </div>
 
                     <div class="info-cell">
@@ -1581,15 +1600,20 @@ def get_html(gicode) :
                             <td>{comma(cp_value(yprofit, nv_per, sc)['price'])}원</td>
                         </tr>
                         <tr>
-                            <th><a href="{cg_url}">업종 (CG)</a></th>
+                            <th><a href="{cg_url}">업종 (FG)</a></th>
                             <td>{comma(cg_per, 2)}</td>
                             <td>{comma(cp_value(yprofit, cg_per, sc)['value'])}억원</td>
                             <td>{comma(cp_value(yprofit, cg_per, sc)['price'])}원</td>
                         </tr>
                         <tr>
                             <th>별도 조정</th>
-                            <td>
-                                <input class="custom-input per-input" value="10" type="number" min="0" max="100" step="1" />
+                            <td class="per-input">
+                                <div>
+                                    <input class="custom-input" value="10" type="number" min="0" max="100" step="1" />
+                                </div>
+                                <div>
+                                    PER 입력
+                                </div>
                             </td>
                             <td><span class="custom-value per-fair-value"></span></td>
                             <td><span class="custom-value per-fair-price"></span></td>
@@ -1599,8 +1623,9 @@ def get_html(gicode) :
                 
             </div>
             <div class="fs-comment-text">
+                <div><b>별도 조정의 PER은 직접 수정 가능합니다.</b></div>
                 <div>NV=NAVER 증권 기준 동일 업종 PER</div>
-                <div>CG=Company Guide 기준 동일 업종 PER</div>
+                <div>FG=FnGuide 기준 동일 업종 PER</div>
             </div>
             <!-- 영업이익*PER END -->
             <!-- 영업이익*PER Chart -->
@@ -1723,11 +1748,13 @@ def get_html(gicode) :
     srim_result = srim['srim']
     # 예상 ROE
     e_roe = srim_result['ce']['roe'] if 'ce' in srim_result else None
+    e_chk = e_roe >= bbb if 'ce' in srim_result else None
     e_value = srim_result['ce']['w'] if 'ce' in srim_result else None
     e_price = [val['sprice'] for val in e_value.values()] if e_value != None else None
 
     # 가중 ROE
     w_roe = srim_result['we']['roe']
+    w_chk = w_roe >= bbb
     w_value = srim_result['we']['w']
     w_price = [val['sprice'] for val in w_value.values()] if w_value != None else None
 
@@ -1762,7 +1789,7 @@ def get_html(gicode) :
                     </div>
 
                     <div class="info-cell">
-                        <div class="cell-head">BBB-</div>
+                        <div class="cell-head">회사채 할인율</div>
                         <div class="cell-desc">{bbb}%</div>
                     </div>
                     <div class="info-cell">
@@ -1775,22 +1802,28 @@ def get_html(gicode) :
                     </div>
                 </div>
             </div>
+            <div class="fs-comment-text">
+                회사채 수익률은 BBB- 등급의 5년 수익률을 사용합니다.
+            </div>
             <div class="srim-page">
                 <div class="srim-roe-head">
                     <div class="srim-roe {'roe-selected' if e_roe != None else 'fs-hidden'}">예상 ROE</div>
                     <div class="srim-roe {'roe-selected' if e_roe == None else ''}">가중 ROE</div>
                     <div class="srim-roe-info">{'예상 ROE가 없습니다. 가중 ROE로만 제공됩니다.' if e_roe == None else '기준 ROE 선택'}</div>
                 </div>
+                <div class="fs-comment-text" style="margin-top: 5px">
+                    <b>ROE가 회사채 수익률보다 낮은 경우</b>에는 <b>'초과이익'이 아닌</b> <span class="bad-value"><b>'초과손실' 기준</b></span>으로 판단합니다.
+                </div>
                 <div class="fs-div srim-result" style="margin-top: 10px">
                     <table class="fs-data srim-table{' post-fs-hidden' if e_value == None else ''}">
                         <thead>
-                            <th>초과이익</th>
+                            <th><span {"class='bad-value'" if not e_chk else ''}>초과{'이익' if e_chk else '손실'}</span></th>
                             <th>기업가치</th>
                             <th>적정주가</th>
                         </thead>
                         <tbody>
                             <tr>
-                                <th>이익 지속</th>
+                                <th>지속</th>
                                 <td>{'%s억'%(comma(e_value['w1']['svalue'])) if e_roe != None else ''}</td>
                                 <td>{'%s원'%(comma(e_value['w1']['sprice'])) if e_roe != None else ''}</td>
                             </tr>
@@ -1824,13 +1857,13 @@ def get_html(gicode) :
 
                     <table class="fs-data srim-table{' post-fs-hidden' if e_value != None else ''}">
                         <thead>
-                            <th>초과이익</th>
+                            <th><span {"class='bad-value'" if not w_chk else ''}>초과{'이익' if w_chk else '손실'}</span></th>
                             <th>기업가치</th>
                             <th>적정주가</th>
                         </thead>
                         <tbody>
                             <tr>
-                                <th>이익 지속</th>
+                                <th>지속</th>
                                 <td>{'%s억'%(comma(w_value['w1']['svalue']))}</td>
                                 <td>{'%s원'%(comma(w_value['w1']['sprice']))}</td>
                             </tr>
@@ -1880,7 +1913,7 @@ def get_html(gicode) :
             const srimChart = new Chart(srimCanvas, {{
                 type: 'line',
                 data: {{
-                    labels: ['이익 지속', '10% 감소', '20% 감소', '30% 감소', '40% 감소', '50% 감소'],
+                    labels: ['지속', '10% 감소', '20% 감소', '30% 감소', '40% 감소', '50% 감소'],
                     datasets: [{{
                         label: '적정주가',
                         data: setSRIM,
@@ -1972,7 +2005,7 @@ def get_html(gicode) :
     html_fs_body = f'''
     {html_head}
     {html_info}
-    <div class="report-title">재무정보</div>
+    <div class="report-title" id="finance-datas">재무정보</div>
     <div class="financial-statements">
         <div class="fs-table">
     {html_fs_table}
@@ -2007,6 +2040,7 @@ def get_html(gicode) :
     </script>
     <!-- END -->
     <!-- AI 분석 -->
+    <div style="display: hidden;" id="fs-summary-ai"></div>
 
     <!-- 여기에 ChatGPT 내용 삽입 -->
     
@@ -2170,6 +2204,7 @@ def for_chatgpt(gicode) :
     # SRIM
     srim_result = SRIM(gicode)['srim']
     ce_roe = None
+    bbb = float(fs['bbb'])
     if 'ce' in srim_result :
         ce_srim = srim_result['ce']
         ce_roe = ce_srim['roe']
@@ -2179,15 +2214,16 @@ def for_chatgpt(gicode) :
             ce_result.drop(index='svalue', inplace=True)
             ce_result['현재 주가'] = current_price
             ce_result['ROE'] = ce_roe
+            ce_result['구분'] = '초과이익' if ce_roe>=bbb else '초과손실'
             ce_result.rename(index={
                 'sprice': '올해예상_ROE'
             }, columns={
-                'w1': '초과이익_지속_적정주가',
-                'w2': '초과이익_10%감소_적정주가',
-                'w3': '초과이익_20%감소_적정주가',
-                'w4': '초과이익_30%감소_적정주가',
-                'w5': '초과이익_40%감소_적정주가',
-                'w6': '초과이익_50%감소_적정주가',
+                'w1': '지속_적정주가',
+                'w2': '10%감소_적정주가',
+                'w3': '20%감소_적정주가',
+                'w4': '30%감소_적정주가',
+                'w5': '40%감소_적정주가',
+                'w6': '50%감소_적정주가',
             }, inplace=True)
 
     we_srim = srim_result['we']
@@ -2196,15 +2232,16 @@ def for_chatgpt(gicode) :
     we_result.drop(index='svalue', inplace=True)
     we_result['현재 주가'] = current_price
     we_result['ROE'] = we_roe
+    we_result['구분'] = '초과이익' if we_roe>=bbb else '초과손실'
     we_result.rename(index={
         'sprice': '가중평균_ROE'
     }, columns={
-        'w1': '초과이익_지속_적정주가',
-        'w2': '초과이익_10%감소_적정주가',
-        'w3': '초과이익_20%감소_적정주가',
-        'w4': '초과이익_30%감소_적정주가',
-        'w5': '초과이익_40%감소_적정주가',
-        'w6': '초과이익_50%감소_적정주가',
+        'w1': '지속_적정주가',
+        'w2': '10%감소_적정주가',
+        'w3': '20%감소_적정주가',
+        'w4': '30%감소_적정주가',
+        'w5': '40%감소_적정주가',
+        'w6': '50%감소_적정주가',
     }, inplace=True)
 
     # SRIM 분석결과

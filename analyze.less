@@ -70,6 +70,7 @@ html {
         display: flex;
         align-items: center;
         justify-content: center;
+        white-space: nowrap;
     }
 
     .info-one {
@@ -227,6 +228,14 @@ html {
 
     &:focus {
         outline: 1px solid @basic-color;
+    }
+}
+
+.per-input {
+    font-size: 0.5rem;
+    input {
+        font-size: 0.7rem;
+        max-height: 15px;
     }
 }
 
