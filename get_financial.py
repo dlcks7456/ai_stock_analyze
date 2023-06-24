@@ -808,6 +808,11 @@ def fs_table(base, txt) :
         else :
             erosion_rate.append(None)
 
+    # 분기재무제표 요약
+    summary = '''<div class="goto-summary">
+    <a title="분기재무제표 요약 바로가기" href="#fs-summary-2">분기재무제표 요약 바로가기</a>
+    </div>'''
+
     html_fs = f'''
             <!-- {txt} -->
             <div class="fs-head">
@@ -927,6 +932,7 @@ def fs_table(base, txt) :
                 </script>
             </div>
             <!-- {txt} Chart END -->
+            {summary if txt == '분기' else ''}
 '''
 
     return html_fs
@@ -1155,9 +1161,6 @@ def get_html(gicode) :
         <a title="연간재무제표 요약 바로가기" href="#fs-summary-1">연간재무제표 요약 바로가기</a>
     </div>
     {fs_table(sfsq, '분기')}
-    <div class="goto-summary">
-        <a title="분기재무제표 요약 바로가기" href="#fs-summary-2">분기재무제표 요약 바로가기</a>
-    </div>
     '''
 
     # HTML 재무상태표
@@ -1373,6 +1376,7 @@ def get_html(gicode) :
     cash_comb_name = {
         '+/-/-' : '<span class="good-value">우량</span>',
         '+/-/+' : '<span class="good-value">성장</span>',
+        '+/+/+' : '성장',
         '+/+/-' : '과도기',
         '-/-/-' : '재활',
         '-/-/+' : '재활',
@@ -2264,6 +2268,8 @@ def create_post(post_info) :
 
     url = response.json()['tistory']['url']
     status = response.json()['tistory']['status']
-    print(f'Response status : {status}')
+    print(f'''
+Create Post
+Response status : {status}''')
     return url
 
