@@ -2310,9 +2310,13 @@ document.addEventListener('DOMContentLoaded', (event) => {{
     <div style="display: hidden;" id="fs-summary-ai"></div>
 
     <!-- 여기에 ChatGPT 내용 삽입 -->
-    
     <!-- AI 분석 END -->
     <div class="a-line"></div>
+    <!-- BUY ME A COFFEE -->
+    <div style="max-width: 600px; display: flex; align-items: center; justify-content: center; margin-bottom: 30px;">
+        <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="duron7456a" data-color="#2cddb1" data-emoji="☕"  data-font="Poppins" data-text="커피 한 잔으로 저를 응원해주세요! " data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#FFDD00" ></script>
+    </div>
+    <!-- BUY ME A COFFEE END -->
     <div class="fs-mypost-list">
         <div class="fs-mypost">📗 관련 포스트</div>
         <div class="fs-mypost-link">
