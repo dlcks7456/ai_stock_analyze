@@ -441,6 +441,48 @@ def get_spread() :
 
   return bbb
 
+def get_all_spread() :
+    url = 'https://www.kisrating.com/ratingsStatistics/statics_spread.do'
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    table = soup.find('div', {'id': 'con_tab1'}).find('table')
+    rows = table.find_all('tr')
+    ths = table.find_all('th')
+
+    rate = {}
+
+    for th in ths :
+        rate[th.get_text(strip=True)] = []
+
+    for row in rows:
+        columns = row.find_all('td')
+        if not columns :
+            continue
+        for idx, key in enumerate(list(rate.keys())) :
+            bef_data = rate[key].copy()
+            rdata = columns[idx].get_text(strip=True)
+            if '.' in rdata : 
+                rdata = float(rdata)
+            else :
+                if rdata.isdigit() :
+                    rdata = int(rdata)
+            bef_data.append(rdata)
+            rate[key] = bef_data
+
+
+    gubun = rate['구분']
+    month = [g for g in list(rate.keys()) if g != '구분']
+    spread = {}
+    for idx, g in enumerate(gubun) :
+        data = {m : rate[m][idx] for m in month}
+        spread[g] = data
+
+    date_input = soup.find('input', {'id': 'startDt'})['value']
+
+    return {'date': date_input, 'rate': spread}
+
+
 # 모든 아이템 출력
 def get_stock_items(gicode) :
   soup = get_snapshot_soup(gicode)
@@ -469,7 +511,8 @@ def get_stock_items(gicode) :
     'cash_table': dc['cash_table'],
     'daecha_table': dc['daecha_table'],
     'same_per': get_same_per(gicode),
-    'bbb' : get_spread()
+    'bbb' : get_spread(),
+    'spread' : get_all_spread()
   }
 
 
@@ -495,7 +538,7 @@ def set_weight_aver(*values) :
         return None
 
 # SRIM Calculator
-def SRIM(gicode) :
+def SRIM(gicode, bbb=None) :
     stock = get_stock_items(gicode)
 
     # 연결재무제표(연간)
@@ -525,8 +568,8 @@ def SRIM(gicode) :
     }
 
     # BBB- 할인율 ✅
-    bbb = float(stock['bbb'])
-
+    if bbb == None :
+        bbb = float(stock['bbb'])
 
     # SRIM 최종 결과 ✅
     return_values = {}
@@ -966,8 +1009,35 @@ def cp_value(vprofit, vper, vcommon) :
         }
 
 
+# 등급별금리스트페리드 아코디언 아이템
+def rate_acco_item(rate_data) :
+    acco_item_txt = '''
+                        <div class="fs-accordion-item">
+                            <button class="fs-accordion-btn">{name}</button>
+                            <div class="fs-accordion-content fs-spread-list">
+                            {items}
+                            </div>
+                        </div>'''
 
-def get_html(gicode) :
+    spre_item_txt = '''
+                            <div class="fs-spread-item">
+                                <div class="fs-spread-month">{month}</div>
+                                <button class="fs-spread-value">{rate}</button>
+                            </div>'''
+
+
+    spread_html = []
+    for key, value in rate_data.items() :
+        spre_txt = [spre_item_txt.format(month=vk, rate=vv) for vk, vv in value.items()]
+        acco_txt = acco_item_txt.format(name=key, items=''.join(spre_txt))
+        spread_html.append(acco_txt)
+
+    spread_html = ''.join(spread_html)
+
+    return spread_html
+
+
+def get_html(gicode, bbb=None) :
     web_data = get_stock_items(gicode)
 
     sname = web_data['name'] # 종목이름
@@ -988,7 +1058,12 @@ def get_html(gicode) :
 
     same_pers = web_data['same_per'] # 업종 PER
 
-    bbb = float(web_data['bbb']) # BBB- 할인율
+    if bbb == None :
+        bbb = float(web_data['bbb']) # BBB- 할인율 (기본값)
+
+    spread = web_data['spread'] # 등급별금리스프레드
+    spread_date = spread['date']
+    spread_rate = spread['rate'] 
 
     # HTML HEAD
     html_head = '''
@@ -1082,6 +1157,7 @@ def get_html(gicode) :
         <ul>
             <li>FnGuide/NAVER 증권에서 <b>웹스크래핑한 데이터</b>입니다.</li>
             <li>모바일에서도 확인은 가능하지만 PC가 더 편리할 수 있습니다.</li>
+            <li>티스토리 <b>모바일 앱</b>에서는 <span class="bad-value"><b>일부 기능이 작동하지 않습니다.</b></span></li>
             <li>이 포스트는 <b>{sdate} 기준</b>입니다. <b>재무 데이터는 이후 변경될 수 있습니다.</b></li>
             <li><b>요약은 AI가 작성</b>했습니다.</li>
             <li><b>긍정적인 수치</b>는 <span class="good-value"><b>초록색 폰트</b></span>로 표시됩니다.</li>
@@ -1089,6 +1165,7 @@ def get_html(gicode) :
             <li><span class="weight-value"><b>노란색 배경</b></span>은 <span class="weight-value"><b>가중 평균</b></span>으로 계산된 수치입니다.</li>
             <li>재무정보 중 <span class="weight-value"><b>가중 평균</b></span>으로 계산된 케이스는 <b>AI분석에서 제외</b>됩니다.</li>
             <li>재무정보의 차트는 범례를 클릭하면 해당 범례를 숨기거나 나타낼 수 있습니다.</li>
+            <li><b>SRIM 적정주가 계산에서는 회사채 수익률을 변경해서 적용 가능합니다.</b></li>
             <li><b>자료는 참고용 정보</b>일 뿐입니다. <b>투자 결과에 대한 책임은 본인</b>에게 있습니다.</li>
         </ul>
     </div>
@@ -1103,12 +1180,12 @@ def get_html(gicode) :
         </div>
         <div class="fs-mypost-link">
             <a href="#fs-calc-result">
-                <div>적정주가 계산</div>
+                <div>적정주가 계산 (영업이익*PER & SRIM)</div>
             </a>
         </div>
         <div class="fs-mypost-link">
             <a href="#fs-summary-ai">
-                <div>요약(From. AI)</div>
+                <div>요약 (From. AI)</div>
             </a>
         </div>
     </div>
@@ -1741,7 +1818,7 @@ def get_html(gicode) :
             <!-- 영업이익*PER Chart END -->'''
 
     # HTML SRIM
-    srim = SRIM(gicode)
+    srim = SRIM(gicode, bbb)
 
     # 지배주주지분
     srim_jibun = srim['지배주주지분']
@@ -1782,16 +1859,22 @@ def get_html(gicode) :
                     <div class="cell-desc">{comma(streasury)}</div>
                 </div>
 
-                <div class="info">
-                    <div class="info-cell">
-                        <div class="cell-head">지배주주지분</div>
-                        <div class="cell-desc">{comma(srim_jibun)}</div>
-                    </div>
+                <div class="info-one">
+                    <div class="cell-head">지배주주지분</div>
+                    <div class="cell-desc">{comma(srim_jibun)}</div>
+                </div>
 
-                    <div class="info-cell">
-                        <div class="cell-head">회사채 할인율</div>
-                        <div class="cell-desc">{bbb}%</div>
+                <div class="info-one">
+                    <div class="cell-head">회사채 할인율</div>
+                    <div class="cell-desc fs-flex">
+                        <div class="fs-disc-rate">{bbb}%</div>
+                        <div>
+                            <div class="srim-ratio-btn">변경</div>
+                        </div>
                     </div>
+                </div>
+
+                <div class="info">
                     <div class="info-cell">
                         <div class="cell-head">예상 ROE</div>
                         <div class="cell-desc">{comma(e_roe, 2) if e_roe != None else ''}</div>
@@ -1803,8 +1886,155 @@ def get_html(gicode) :
                 </div>
             </div>
             <div class="fs-comment-text">
-                회사채 수익률은 BBB- 등급의 5년 수익률을 사용합니다.
+                회사채 수익률의 기본값은 BBB- 등급의 5년 수익률입니다.
             </div>
+            <div id="myModal" class="fs-modal">
+                <div class="modal-content">
+                    <div class="close">&times;</div>
+                    <div class="fs-spread-head">등급별금리스프레드</div>
+                    <div class="fs-spread-date">기준일: {spread_date} / 단위:%</div>
+                    <div class="fs-accordion">
+                        {rate_acco_item(spread_rate)}
+                    </div>
+                </div>
+            </div>
+            <script>
+// SRIM Calculator
+const srimCalculator = (ipROE, ipStockCnt, ipSelf, ipInter, ipRate)=>{{
+    if( ipROE == null) return;
+    const dan = 100000000;
+    // 기업가치
+    const numerator = ipInter*(ipROE - ipRate);
+    const b0 = ipInter + (numerator/ipRate);
+    
+    // 주식수
+    const realCnt = ipStockCnt - ipSelf;
+
+    // 적정주가
+    const fairValue = (b0*dan)/realCnt;
+    //console.log(Math.round(fairValue));
+
+    // 초과이익
+    const excessProfit = ipInter*((ipROE/100) - (ipRate/100));
+    // 초과이익, 초과손실
+    const excessFlag = excessProfit > 0 ? true : false;
+
+    let ws = {{
+        w1 : 1,
+        w2 : 0.9,
+        w3 : 0.8,
+        w4 : 0.7,
+        w5 : 0.6,
+        w6 : 0.5,
+    }}
+
+    Object.entries(ws).forEach(([key, value]) => {{
+        const deno = (1+(ipRate/100)) - value;
+        const wCalc = value/deno;
+        const svalue = ipInter + (excessProfit*wCalc);
+        const sprice = (svalue/realCnt)*dan;
+        ws[key] = {{
+            svalue: Math.round(svalue),
+            sprice: Math.round(sprice)
+        }}
+    }});
+
+    return {{
+        flag : excessFlag,
+        srim: ws
+    }}
+}}
+
+const setSrimResult = (tableClass, ipROE, ipRate)=>{{
+    if( ipROE == null ){{
+        return [];
+    }}
+    const ws = srimCalculator(ipROE, {scommon}, {streasury}, {srim_jibun}, ipRate);
+    // SRIM Table
+    const srimTable = document.querySelector(tableClass);
+    if( srimTable == undefined ){{
+        return [];
+    }};
+    if( ws == null ){{
+        return [];
+    }};
+
+    const flagTH = srimTable.querySelector('.srim-flag span');
+    if( ws.flag ){{       
+        flagTH.innerHTML = '초과이익';
+        flagTH.classList.remove('bad-value');
+    }} else {{
+        flagTH.innerHTML = '초과손실';
+        flagTH.classList.add('bad-value');
+    }}
+
+    const srimValueCell = srimTable.querySelectorAll('.srim-value');
+    const srimPriceCell = srimTable.querySelectorAll('.srim-price');
+
+    const srims = ws.srim;
+    let resultList = [];
+    Object.entries(srims).forEach(([key, srim], index)=>{{
+        srimValueCell[index].innerHTML = `${{srim.svalue.toLocaleString()}}억`;
+        srimPriceCell[index].innerHTML = `${{srim.sprice.toLocaleString()}}원`;
+        resultList.push(srim.sprice);
+    }});
+
+    return resultList;
+}}
+
+document.addEventListener('DOMContentLoaded', (event) => {{
+    const modal = document.querySelector('#myModal');
+    const btn = document.querySelector(".srim-ratio-btn");
+    const span = modal.querySelector(".close");
+
+    btn.onclick = function() {{
+        modal.style.display = "block";
+    }}
+
+    span.onclick = function() {{
+        modal.style.display = "none";
+    }}
+
+    window.onclick = function(event) {{
+        if (event.target == modal) {{
+            modal.style.display = "none";
+        }}
+    }}
+
+
+    const accordionButtons = document.querySelectorAll('.fs-accordion-btn');
+
+    accordionButtons.forEach(function (button) {{
+    button.addEventListener('click', function () {{
+        const accordionContent = this.nextElementSibling.querySelector('.fs-accordion-content');
+        const accordionItem = this.parentElement;
+        const openItem = document.querySelector('.fs-accordion-item.open');
+
+        if (openItem && openItem !== accordionItem) {{
+            closeAccordion(openItem);
+        }}
+
+        if (accordionItem.classList.contains('open')) {{
+            closeAccordion(accordionItem);
+        }} else {{
+            openAccordion(accordionItem);
+        }}
+        }});
+    }});
+
+    function openAccordion(accordionItem) {{
+        const content = accordionItem.querySelector('.fs-accordion-content');
+        accordionItem.classList.add('open');
+        content.style.maxHeight = content.scrollHeight + 'px';
+    }}
+
+    function closeAccordion(accordionItem) {{
+        const content = accordionItem.querySelector('.fs-accordion-content');
+        accordionItem.classList.remove('open');
+        content.style.maxHeight = null;
+    }}
+}});
+            </script>
             <div class="srim-page">
                 <div class="srim-roe-head">
                     <div class="srim-roe {'roe-selected' if e_roe != None else 'fs-hidden'}">예상 ROE</div>
@@ -1815,82 +2045,82 @@ def get_html(gicode) :
                     <b>ROE가 회사채 수익률보다 낮은 경우</b>에는 <b>'초과이익'이 아닌</b> <span class="bad-value"><b>'초과손실' 기준</b></span>으로 판단합니다.
                 </div>
                 <div class="fs-div srim-result" style="margin-top: 10px">
-                    <table class="fs-data srim-table{' post-fs-hidden' if e_value == None else ''}">
+                    <table class="srim-e-roe fs-data srim-table{' post-fs-hidden' if e_value == None else ''}">
                         <thead>
-                            <th><span {"class='bad-value'" if not e_chk else ''}>초과{'이익' if e_chk else '손실'}</span></th>
+                            <th class="srim-flag"><span></span></th>
                             <th>기업가치</th>
                             <th>적정주가</th>
                         </thead>
                         <tbody>
                             <tr>
                                 <th>지속</th>
-                                <td>{'%s억'%(comma(e_value['w1']['svalue'])) if e_roe != None else ''}</td>
-                                <td>{'%s원'%(comma(e_value['w1']['sprice'])) if e_roe != None else ''}</td>
+                                <td class="srim-value"></td>
+                                <td class="srim-price"></td>
                             </tr>
                             <tr>
                                 <th>10% 감소</th>
-                                <td>{'%s억'%(comma(e_value['w2']['svalue'])) if e_roe != None else ''}</td>
-                                <td>{'%s원'%(comma(e_value['w2']['sprice'])) if e_roe != None else ''}</td>
+                                <td class="srim-value"></td>
+                                <td class="srim-price"></td>
                             </tr>
                             <tr>
                                 <th>20% 감소</th>
-                                <td>{'%s억'%(comma(e_value['w3']['svalue'])) if e_roe != None else ''}</td>
-                                <td>{'%s원'%(comma(e_value['w3']['sprice'])) if e_roe != None else ''}</td>
+                                <td class="srim-value"></td>
+                                <td class="srim-price"></td>
                             </tr>
                             <tr>
                                 <th>30% 감소</th>
-                                <td>{'%s억'%(comma(e_value['w4']['svalue'])) if e_roe != None else ''}</td>
-                                <td>{'%s원'%(comma(e_value['w4']['sprice'])) if e_roe != None else ''}</td>
+                                <td class="srim-value"></td>
+                                <td class="srim-price"></td>
                             </tr>
                             <tr>
                                 <th>40% 감소</th>
-                                <td>{'%s억'%(comma(e_value['w5']['svalue'])) if e_roe != None else ''}</td>
-                                <td>{'%s원'%(comma(e_value['w5']['sprice'])) if e_roe != None else ''}</td>
+                                <td class="srim-value"></td>
+                                <td class="srim-price"></td>
                             </tr>
                             <tr>
                                 <th>50% 감소</th>
-                                <td>{'%s억'%(comma(e_value['w6']['svalue'])) if e_roe != None else ''}</td>
-                                <td>{'%s원'%(comma(e_value['w6']['sprice'])) if e_roe != None else ''}</td>
+                                <td class="srim-value"></td>
+                                <td class="srim-price"></td>
                             </tr>
                         </tbody>
                     </table>
 
-                    <table class="fs-data srim-table{' post-fs-hidden' if e_value != None else ''}">
+                    <table class="srim-w-roe fs-data srim-table{' post-fs-hidden' if e_value != None else ''}">
                         <thead>
-                            <th><span {"class='bad-value'" if not w_chk else ''}>초과{'이익' if w_chk else '손실'}</span></th>
+                            <th class="srim-flag"><span></span></th>
                             <th>기업가치</th>
                             <th>적정주가</th>
                         </thead>
                         <tbody>
                             <tr>
                                 <th>지속</th>
-                                <td>{'%s억'%(comma(w_value['w1']['svalue']))}</td>
-                                <td>{'%s원'%(comma(w_value['w1']['sprice']))}</td>
+                                <td class="srim-value"></td>
+                                <td class="srim-price"></td>
                             </tr>
                             <tr>
                                 <th>10% 감소</th>
-                                <td>{'%s억'%(comma(w_value['w2']['svalue']))}</td>
-                                <td>{'%s원'%(comma(w_value['w2']['sprice']))}</td>
+                                <td class="srim-value"></td>
+                                <td class="srim-price"></td>
                             </tr>
                             <tr>
                                 <th>20% 감소</th>
-                                <td>{'%s억'%(comma(w_value['w3']['svalue']))}</td>
-                                <td>{'%s원'%(comma(w_value['w3']['sprice']))}</td>
+                                <td class="srim-value"></td>
+                                <td class="srim-price"></td>
                             </tr>
                             <tr>
                                 <th>30% 감소</th>
-                                <td>{'%s억'%(comma(w_value['w4']['svalue']))}</td>
-                                <td>{'%s원'%(comma(w_value['w4']['sprice']))}</td>
+                                <td class="srim-value"></td>
+                                <td class="srim-price"></td>
                             </tr>
                             <tr>
                                 <th>40% 감소</th>
-                                <td>{'%s억'%(comma(w_value['w5']['svalue']))}</td>
-                                <td>{'%s원'%(comma(w_value['w5']['sprice']))}</td>
+                                <td class="srim-value"></td>
+                                <td class="srim-price"></td>
                             </tr>
                             <tr>
                                 <th>50% 감소</th>
-                                <td>{'%s억'%(comma(w_value['w6']['svalue']))}</td>
-                                <td>{'%s원'%(comma(w_value['w6']['sprice']))}</td>
+                                <td class="srim-value"></td>
+                                <td class="srim-price"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -1904,9 +2134,9 @@ def get_html(gicode) :
             <script>
             // SRIM CHART
             const srimCanvas = document.querySelector('.fs-srim-chart').getContext('2d');
-            const srimResults = [
-                {e_price if e_price != None else []},
-                {w_price if w_price != None else []}
+            let srimResults = [
+                setSrimResult('.srim-e-roe', {'null' if e_roe == None else e_roe}, {bbb}),
+                setSrimResult('.srim-w-roe', {w_roe}, {bbb}),
             ];
             const srimNowValue = {current_price};
             let setSRIM = srimResults[{0 if e_value != None else 1}];
@@ -1993,6 +2223,43 @@ def get_html(gicode) :
             roeBtn.forEach((roe, index) => {{
                 roe.addEventListener('click', () => {{
                     roeHandler(index);
+                }});
+            }});
+
+
+            const setSrimValue = (tableClass, ipRoe, ipRate) => {{
+                const srimTable = document.querySelector(tableClass);
+                if( srimTable == undefined || srimTable == null ) return;
+
+                const srimResult = setSrimResult(tableClass, ipRoe, ipRate);
+                
+                const resultIndex = tableClass === '.srim-e-roe' ? 0 : 1;
+                srimResults[resultIndex] = srimResult
+                setSRIM = srimResults[resultIndex];
+                // Chart update
+                srimChart.data.datasets[0].data = srimResult;
+                srimChart.update();
+            }}
+
+            document.addEventListener('DOMContentLoaded', ()=>{{
+                const accoValues = document.querySelectorAll('.fs-spread-value');
+                const modal = document.querySelector('#myModal');
+                accoValues.forEach((acco)=>{{
+                    acco.addEventListener('click', ()=>{{
+                        document.querySelector('.fs-disc-rate').innerHTML = `${{acco.innerHTML}}%`;
+                        const accoFloat = parseFloat(acco.innerHTML);
+                        modal.style.display = "none";
+
+                        setSrimValue('.srim-e-roe', {'null' if e_roe == None else e_roe}, accoFloat);
+                        setSrimValue('.srim-w-roe', {w_roe}, accoFloat);
+                        const roes = document.querySelectorAll('.srim-roe');
+
+                        if( !roes[0].classList.contains('fs-hidden') ){{
+                            roes[0].click();
+                        }}else{{
+                            roes[1].click();
+                        }}
+                    }})
                 }});
             }});
         </script>
@@ -2167,10 +2434,11 @@ def for_chatgpt(gicode) :
         estimated_per = np.nan
     # 최근 가중 PER
     before_per = list(annual_financial_statements.iloc[:3]['PER'].values)
-    before_per = [i for i in before_per if i != None]
-
+    before_per = [i for i in before_per if i != None and not np.isnan(i)]
+    
     # 가중 PER
     weighted_per = set_weight_aver(*before_per)
+    
     if weighted_per == None :
         weighted_per = np.nan
     
@@ -2202,9 +2470,9 @@ def for_chatgpt(gicode) :
     calc_fair_value_use_per = pd.DataFrame(compare_price)
 
     # SRIM
-    srim_result = SRIM(gicode)['srim']
-    ce_roe = None
     bbb = float(fs['bbb'])
+    srim_result = SRIM(gicode, bbb)['srim']
+    ce_roe = None
     if 'ce' in srim_result :
         ce_srim = srim_result['ce']
         ce_roe = ce_srim['roe']
