@@ -2535,7 +2535,7 @@ def for_chatgpt(gicode) :
     
 
 
-def create_post(post_info) :
+def create_post(post_info, cate_name='Little Investment') :
     ACCESS_TOKEN = '3ea02f9b4ad8cb71e53023d8195d6436_e5ec86f3a2b9d824d735bb4f4d025389'
 
     # 블로그 정보
@@ -2560,6 +2560,22 @@ def create_post(post_info) :
     # API 요청 URL
     url = f'https://www.tistory.com/apis/post/write'
 
+    # 카테고리 목록 받아오기
+    cate_url = "https://www.tistory.com/apis/category/list"
+    params = {
+        'access_token': ACCESS_TOKEN,
+        'output': 'json',
+        'blogName': BLOG_NAME
+    }
+    response = requests.get(cate_url, params=params)
+    data = response.json()
+
+    # 원하는 카테고리 찾기
+    for category in data['tistory']['item']['categories']:
+        if category['name'] == cate_name :
+            category_id = category['id']
+            break
+
     # 요청 파라미터
     params = {
         'access_token': ACCESS_TOKEN,
@@ -2568,7 +2584,7 @@ def create_post(post_info) :
         'title': title,
         'content': '<!-- 웹스크래핑 자료 붙여 넣기 -->',
         'tag': tags,
-        'category': '1149858',
+        'category': category_id,
         'visibility': 0  # 0: 비공개, 1: 보호, 3: 발행
     }
 
