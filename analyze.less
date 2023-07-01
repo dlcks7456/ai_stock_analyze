@@ -693,3 +693,28 @@ html {
         }
     }
 }
+
+.fs-news-report {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    max-width: 600px;
+    gap: 5px;
+}
+
+.coffee-div {
+    margin-bottom: 20px; 
+    margin-top: 40px; 
+    max-width: 600px;
+
+    .coffee-script {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .coffee-text {
+        color: fade(@basic-color, 80%);
+        font-weight: bold;
+        text-align: center;
+    }
+}

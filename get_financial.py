@@ -1166,6 +1166,7 @@ def get_html(gicode, bbb=None) :
             <li>재무정보 중 <span class="weight-value"><b>가중 평균</b></span>으로 계산된 케이스는 <b>AI분석에서 제외</b>됩니다.</li>
             <li>재무정보의 차트는 범례를 클릭하면 해당 범례를 숨기거나 나타낼 수 있습니다.</li>
             <li><b>SRIM 적정주가 계산에서는 회사채 수익률을 변경해서 적용 가능합니다.</b></li>
+            <li><b>SRIM 적정주가 계산의 요약</b>은 <b>BBB- 5년 회사채 수익률 기준</b>입니다.</li>
             <li><b>자료는 참고용 정보</b>일 뿐입니다. <b>투자 결과에 대한 책임은 본인</b>에게 있습니다.</li>
         </ul>
     </div>
@@ -1243,8 +1244,8 @@ def get_html(gicode, bbb=None) :
         </div>
     </div>
     <div class="fs-btn-a">
-        <a title="NAVER 증권:{sname}" href="https://finance.naver.com/item/main.nhn?code={gicode}">NAVER 증권 바로가기</a>
-        <a title="FnGuide:{sname}" href="http://comp.fnguide.com/SVO2/ASP/SVD_main.asp?pGB=1&gicode=A{gicode}&cID=&MenuYn=Y&ReportGB=&NewMenuID=11&stkGb=&strResearchYN=">FnGuide 바로가기</a>
+        <a title="NAVER 증권:{sname}" target="_blank" href="https://finance.naver.com/item/main.nhn?code={gicode}">NAVER 증권 바로가기</a>
+        <a title="FnGuide:{sname}" target="_blank" href="http://comp.fnguide.com/SVO2/ASP/SVD_main.asp?pGB=1&gicode=A{gicode}&cID=&MenuYn=Y&ReportGB=&NewMenuID=11&stkGb=&strResearchYN=">FnGuide 바로가기</a>
     </div>
     <!-- 종목 기본 정보 END-->
     <div class="a-line"></div>
@@ -1581,7 +1582,7 @@ def get_html(gicode, bbb=None) :
                 <div class="fs-with-q">
                     <div class="fs-title" id="fs-table-5">영업이익*PER</div>
                     <div>
-                        <a href="https://waymond.tistory.com/40" title="적정주가 간단하게 계산해보기">
+                        <a target="_blank" href="https://waymond.tistory.com/40" title="적정주가 간단하게 계산해보기">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
                         </svg>                  
@@ -1620,7 +1621,7 @@ def get_html(gicode, bbb=None) :
                 <div class="fs-with-q">
                     <div class="fs-title" id="fs-table-5">영업이익*PER</div>
                     <div>
-                        <a href="https://waymond.tistory.com/40" title="적정주가 간단하게 계산해보기">
+                        <a target="_blank" href="https://waymond.tistory.com/40" title="적정주가 간단하게 계산해보기">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
                         </svg>                  
@@ -1671,13 +1672,13 @@ def get_html(gicode, bbb=None) :
                             <td>{comma(cp_value(yprofit, ywper, sc)['price']) if ywper != None else ''}{'원' if ywper != None else ''}</td>
                         </tr>
                         <tr>
-                            <th><a href="{nv_url}">업종 (NV)</a></th>
+                            <th><a target="_blank" href="{nv_url}">업종 (NV)</a></th>
                             <td>{comma(nv_per, 2)}</td>
                             <td>{comma(cp_value(yprofit, nv_per, sc)['value'])}억원</td>
                             <td>{comma(cp_value(yprofit, nv_per, sc)['price'])}원</td>
                         </tr>
                         <tr>
-                            <th><a href="{cg_url}">업종 (FG)</a></th>
+                            <th><a target="_blank" href="{cg_url}">업종 (FG)</a></th>
                             <td>{comma(cg_per, 2)}</td>
                             <td>{comma(cp_value(yprofit, cg_per, sc)['value'])}억원</td>
                             <td>{comma(cp_value(yprofit, cg_per, sc)['price'])}원</td>
@@ -1841,7 +1842,7 @@ def get_html(gicode, bbb=None) :
                 <div class="fs-with-q">
                     <div class="fs-title" id="fs-table-6">SRIM</div>
                     <div>
-                        <a href="https://waymond.tistory.com/41" title="주식투자 전략:SRIM으로 적정주가 계산">
+                        <a target="_blank" href="https://waymond.tistory.com/41" title="주식투자 전략:SRIM으로 적정주가 계산">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
                         </svg>                  
@@ -2312,44 +2313,98 @@ document.addEventListener('DOMContentLoaded', (event) => {{
     <!-- 여기에 ChatGPT 내용 삽입 -->
     <!-- AI 분석 END -->
     <div class="a-line"></div>
+    <div class="fs-news-report">
+        <div class="fs-mypost-list">
+            <div class="fs-mypost">📰 뉴스/공시</div>
+            <div class="fs-mypost-link">
+                <a target="_blank" href="https://finance.naver.com/item/news.naver?code={gicode}">
+                    <div>네이버</div>
+                </a>
+            </div>
+            <div class="fs-mypost-link">
+                <a target="_blank" href="https://finance.daum.net/quotes/A{gicode}#news/stock">
+                    <div>다음</div>
+                </a>
+            </div>
+            <div class="fs-mypost-link">
+                <a target="_blank" href="http://comp.fnguide.com/SVO2/ASP/SVD_Disclosure.asp?pGB=1&gicode=A{gicode}&cID=&MenuYn=Y&ReportGB=&NewMenuID=107&stkGb=701">
+                    <div>FnGuide</div>
+                </a>
+            </div>
+        </div>
+        <div class="fs-mypost-list">
+            <div class="fs-mypost">📋 리포트</div>
+            <div class="fs-mypost-link">
+                <a target="_blank" href="https://finance.naver.com/research/company_list.naver?keyword=&brokerCode=&writeFromDate=&writeToDate=&searchType=itemCode&itemName=%BB%EF%BC%BA%C0%FC%C0%DA&itemCode={gicode}&x=10&y=12">
+                    <div>네이버</div>
+                </a>
+            </div>
+            <div class="fs-mypost-link">
+                <a target="_blank" href="https://finance.daum.net/quotes/A{gicode}#investments/report">
+                    <div>다음</div>
+                </a>
+            </div>
+            <div class="fs-mypost-link">
+                <a target="_blank" href="http://comp.fnguide.com/SVO2/ASP/SVD_Report_Trend.asp?pGB=1&gicode=A{gicode}&cID=&MenuYn=Y&ReportGB=&NewMenuID=801&stkGb=701">
+                    <div>FnGuide</div>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="a-line"></div>
     <!-- BUY ME A COFFEE -->
-    <div style="max-width: 600px; display: flex; align-items: center; justify-content: center; margin-bottom: 30px;">
-        <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="duron7456a" data-color="#2cddb1" data-emoji="☕"  data-font="Poppins" data-text="커피 한 잔으로 저를 응원해주세요! " data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#FFDD00" ></script>
+    <div class="coffee-div">
+        <div class="coffee-script" style="display: flex;flex-direction: column;align-items: center;">
+            <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="duron7456a" data-color="#40DCA5" data-emoji=""  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#ffffff" data-coffee-color="#FFDD00" ></script>
+            <div class="coffee-text">
+                커피 한 잔으로<br/>저를 응원해주세요!
+            </div>
+        </div>
     </div>
     <!-- BUY ME A COFFEE END -->
     <div class="fs-mypost-list">
         <div class="fs-mypost">📗 관련 포스트</div>
         <div class="fs-mypost-link">
-            <a href="https://waymond.tistory.com/14">
+            <a target="_blank" href="https://waymond.tistory.com/14">
                 <div>주식 초보자 마인드 셋</div>
             </a>
         </div>
         <div class="fs-mypost-link">
-            <a href="https://waymond.tistory.com/16">
+            <a target="_blank" href="https://waymond.tistory.com/16">
                 <div>상장폐지 조건</div>
             </a>
         </div>
         <div class="fs-mypost-link">
-            <a href="https://waymond.tistory.com/22">
+            <a target="_blank" href="https://waymond.tistory.com/22">
                 <div>기본적 분석/기술적 분석</div>
             </a>
         </div>
-        <div class="fs-mypost-link">
+        <div target="_blank" class="fs-mypost-link">
             <a href="https://waymond.tistory.com/23">
                 <div>재무제표에 대해서</div>
             </a>
         </div>
-        <div class="fs-mypost-link">
+        <div target="_blank" class="fs-mypost-link">
             <a href="https://waymond.tistory.com/27">
                 <div>재무제표에서 꼭 확인해야 하는 것들</div>
             </a>
         </div>
-        <div class="fs-mypost-link">
+        <div target="_blank" class="fs-mypost-link">
+            <a href="https://waymond.tistory.com/85">
+                <div>주식 지표 PER/PBR/ROE 알아보기</div>
+            </a>
+        </div>
+        <div target="_blank" class="fs-mypost-link">
+            <a href="https://waymond.tistory.com/86">
+                <div>재무비율 알아보기</div>
+            </a>
+        </div>
+        <div target="_blank" class="fs-mypost-link">
             <a href="https://waymond.tistory.com/40">
                 <div>간단한 적정주가 계산:영업이익*PER</div>
             </a>
         </div>
-        <div class="fs-mypost-link">
+        <div target="_blank" class="fs-mypost-link">
             <a href="https://waymond.tistory.com/41">
                 <div>SRIM으로 적정주가 계산/저평가 주식</div>
             </a>
